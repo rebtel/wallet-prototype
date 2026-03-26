@@ -1505,22 +1505,6 @@
           <button class="btn-add-balance" onclick="event.stopPropagation(); navigate('add-balance')">Add funds</button>
         </div>
 
-        <div class="wallet-card" style="margin-top: calc(-1 * var(--space-md));">
-          <div class="wallet-card__left">
-            <span class="wallet-card__label">Calling</span>
-            <div style="display: flex; align-items: baseline; gap: var(--space-xs);">
-              <span class="wallet-card__balance" style="font-size: 14px; line-height: 20px; color: #0C8489;">€4.32</span>
-              <span style="font-size: var(--paragraph-sm-size); color: var(--color-text-muted);">Calling Credits</span>
-            </div>
-            <div style="display: flex; align-items: center; gap: var(--space-xs); margin-top: var(--space-xxxs);">
-              <div style="width: 20px; height: 20px; border-radius: var(--radius-full); overflow: hidden; flex-shrink: 0; display: flex; align-items: center; justify-content: center;">
-                <svg width="20" height="20" viewBox="0 0 24 24"><clipPath id="flag-circle"><circle cx="12" cy="12" r="12"/></clipPath><g clip-path="url(#flag-circle)"><rect x="0" y="0" width="8" height="24" fill="#008751"/><rect x="8" y="0" width="8" height="24" fill="#FFFFFF"/><rect x="16" y="0" width="8" height="24" fill="#008751"/></g></svg>
-              </div>
-              <span style="font-size: var(--paragraph-sm-size); color: var(--color-text-muted);">53/100 minutes left</span>
-            </div>
-          </div>
-        </div>
-
         <ul class="account-menu">
           <li class="account-menu__item" onclick="navigate('subscriptions')">Your Subscriptions</li>
           <li class="account-menu__item">Invite &amp; get free Rebtel Credits</li>
@@ -1551,33 +1535,6 @@
           <div class="wallet-header__row">
             <span class="wallet-header__balance">$24.24</span>
             <button class="btn-add-balance" onclick="navigate('add-balance')">Add funds</button>
-          </div>
-        </div>
-
-        <div class="section-header">
-          <h2 class="section-header__title">Discounts</h2>
-          <button class="section-header__link" onclick="navigate('discounts')">See all</button>
-        </div>
-        <div class="card">
-          <div class="discount-item">
-            <div class="discount-item__icon discount-item__icon--active">
-              <svg width="20" height="20" fill="none" stroke="#49CD18" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.568 3H5.25A2.25 2.25 0 003 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 005.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 009.568 3z"/><circle cx="6.75" cy="6.75" r="0.75" fill="#49CD18"/></svg>
-            </div>
-            <div class="discount-item__content">
-              <p class="discount-item__title">15% Welcome discount</p>
-              <p class="discount-item__detail">All services · Expires 24 Mar 2026</p>
-            </div>
-            <span class="status-badge status-badge--active">Active</span>
-          </div>
-          <div class="discount-item">
-            <div class="discount-item__icon discount-item__icon--active">
-              <svg width="20" height="20" fill="none" stroke="#49CD18" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.568 3H5.25A2.25 2.25 0 003 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 005.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 009.568 3z"/><circle cx="6.75" cy="6.75" r="0.75" fill="#49CD18"/></svg>
-            </div>
-            <div class="discount-item__content">
-              <p class="discount-item__title">$2 off mobile top-up</p>
-              <p class="discount-item__detail">Mobile top-up · Expires 10 Apr 2026</p>
-            </div>
-            <span class="status-badge status-badge--active">Active</span>
           </div>
         </div>
 
@@ -1839,13 +1796,6 @@
               Wallet balance
             </span>
             <span class="checkout-line__value checkout-line__value--discount">-$9.99</span>
-          </div>
-          <div class="checkout-line">
-            <span class="checkout-line__label">
-              Discount (15% Welcome)
-              <button class="checkout-line__change">Change</button>
-            </span>
-            <span class="checkout-line__value checkout-line__value--discount">-$0.00</span>
           </div>
           <div class="checkout-line checkout-line--total">
             <span class="checkout-line__label">Amount to pay</span>
@@ -2233,55 +2183,6 @@
     </div>
 
     <!-- ========================================== -->
-    <!-- SCREEN: Discounts -->
-    <!-- ========================================== -->
-    <div id="screen-discounts" class="screen">
-      <header class="sub-nav">
-        <button class="sub-nav__back" onclick="navigate('wallet-home')" aria-label="Back">
-          <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
-        </button>
-        <span class="sub-nav__title">Discounts</span>
-        <div class="sub-nav__spacer"></div>
-      </header>
-      <main class="main fade-in">
-
-        <div class="discount-item">
-          <div class="discount-item__icon discount-item__icon--active">
-            <svg width="20" height="20" fill="none" stroke="#49CD18" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.568 3H5.25A2.25 2.25 0 003 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 005.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 009.568 3z"/><circle cx="6.75" cy="6.75" r="0.75" fill="#49CD18"/></svg>
-          </div>
-          <div class="discount-item__content">
-            <p class="discount-item__title">15% Welcome discount</p>
-            <p class="discount-item__detail">All services · Expires 24 Mar 2026</p>
-          </div>
-          <span class="status-badge status-badge--active">Active</span>
-        </div>
-
-        <div class="discount-item">
-          <div class="discount-item__icon discount-item__icon--used">
-            <svg width="20" height="20" fill="none" stroke="var(--color-grey-04)" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.568 3H5.25A2.25 2.25 0 003 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 005.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 009.568 3z"/><circle cx="6.75" cy="6.75" r="0.75" fill="var(--color-grey-04)"/></svg>
-          </div>
-          <div class="discount-item__content">
-            <p class="discount-item__title">$2 off mobile top-up</p>
-            <p class="discount-item__detail">Mobile top-up · Used 28 Feb 2026</p>
-          </div>
-          <span class="status-badge status-badge--used">Used</span>
-        </div>
-
-        <div class="discount-item">
-          <div class="discount-item__icon discount-item__icon--expired">
-            <svg width="20" height="20" fill="none" stroke="var(--color-grey-04)" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.568 3H5.25A2.25 2.25 0 003 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 005.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 009.568 3z"/><circle cx="6.75" cy="6.75" r="0.75" fill="var(--color-grey-04)"/></svg>
-          </div>
-          <div class="discount-item__content">
-            <p class="discount-item__title">10% calling discount</p>
-            <p class="discount-item__detail">International calls · Expired 15 Jan 2026</p>
-          </div>
-          <span class="status-badge status-badge--expired">Expired</span>
-        </div>
-
-      </main>
-    </div>
-
-    <!-- ========================================== -->
     <!-- SCREEN: Subscriptions -->
     <!-- ========================================== -->
     <div id="screen-subscriptions" class="screen">
@@ -2364,13 +2265,12 @@
     <button class="demo-switcher__btn" onclick="navigate('transactions')">Transactions</button>
     <button class="demo-switcher__btn" onclick="navigate('transaction-detail')">Transaction detail</button>
     <button class="demo-switcher__btn" onclick="navigate('refund-request')">Refund request</button>
-    <button class="demo-switcher__btn" onclick="navigate('discounts')">Discounts</button>
     <button class="demo-switcher__btn" onclick="navigate('subscriptions')">Subscriptions</button>
   </div>
 
   <script>
     const tabScreens = ['home', 'services', 'account'];
-    const subScreens = ['wallet-home', 'add-balance', 'add-balance-confirm', 'add-balance-success', 'add-balance-error', 'checkout', 'checkout-success', 'checkout-error', 'payment-methods', 'transactions', 'transaction-detail', 'refund-request', 'discounts', 'subscriptions'];
+    const subScreens = ['wallet-home', 'add-balance', 'add-balance-confirm', 'add-balance-success', 'add-balance-error', 'checkout', 'checkout-success', 'checkout-error', 'payment-methods', 'transactions', 'transaction-detail', 'refund-request', 'subscriptions'];
 
     function navigate(screenId) {
       document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
