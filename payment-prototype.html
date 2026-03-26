@@ -1,0 +1,2427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Wallet — Rebtel</title>
+  <link rel="stylesheet" href="design-system/tokens.css">
+  <style>
+    /* Reset */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: var(--font-body);
+      font-size: var(--paragraph-md-size);
+      line-height: var(--paragraph-md-line);
+      color: var(--color-text);
+      background: var(--color-bg-subtle);
+      display: flex;
+      justify-content: center;
+      min-height: 100vh;
+    }
+
+    /* Mobile app frame */
+    .app-frame {
+      width: 100%;
+      max-width: var(--content-max-width);
+      min-height: 100vh;
+      background: var(--color-bg);
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      box-shadow: var(--shadow-lg);
+    }
+
+    /* Screens */
+    .screen { display: none; flex-direction: column; flex: 1; overflow: hidden; }
+    .screen.active { display: flex; }
+    .fade-in { animation: fadeIn 0.2s ease-out; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* Tab bar */
+    .tab-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-around;
+      height: 80px;
+      background: var(--color-bg);
+      border-top: 1px solid var(--color-border);
+      flex-shrink: 0;
+    }
+    .tab-bar__item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.4px;
+      padding: var(--space-xs) var(--space-sm);
+      border: none;
+      background: none;
+      color: var(--color-text-muted);
+      font-family: var(--font-body);
+      font-size: var(--label-xs-size);
+      line-height: var(--label-xs-line);
+      cursor: pointer;
+      text-decoration: none;
+      transition: color var(--transition-fast);
+    }
+    .tab-bar__item:hover { color: var(--color-text-secondary); }
+    .tab-bar__item--active { color: var(--color-text); }
+    .tab-bar__item .icon-active { display: none; }
+    .tab-bar__item .icon-inactive { display: block; }
+    .tab-bar__item--active .icon-active { display: block; }
+    .tab-bar__item--active .icon-inactive { display: none; }
+    .tab-bar__item:focus-visible {
+      outline: none;
+      box-shadow: var(--focus-ring);
+      border-radius: var(--radius-md);
+    }
+
+    /* Main scrollable content */
+    .main {
+      flex: 1;
+      overflow-y: auto;
+      padding: var(--space-xl) var(--space-md);
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+    }
+
+    /* --- Wallet balance header --- */
+    .wallet-header {
+      margin-bottom: var(--space-xl);
+    }
+    .wallet-header__label {
+      font-size: var(--paragraph-sm-size);
+      line-height: var(--paragraph-sm-line);
+      color: var(--color-text-secondary);
+      margin-bottom: var(--space-xxs);
+    }
+    .wallet-header__row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-md);
+    }
+    .wallet-header__balance {
+      font-family: var(--font-display);
+      font-size: var(--display-lg-size);
+      line-height: var(--display-lg-line);
+      font-weight: var(--font-weight-bold);
+      color: var(--color-text);
+    }
+    .btn-add-balance {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: var(--space-sm) var(--space-xl);
+      background: var(--color-rebtel-red);
+      color: var(--color-text-inverse);
+      font-family: var(--font-body);
+      font-size: var(--label-sm-size);
+      font-weight: var(--font-weight-semibold);
+      line-height: var(--label-sm-line);
+      border: none;
+      border-radius: var(--radius-full);
+      cursor: pointer;
+      transition: background var(--transition-fast);
+      min-height: 44px;
+      white-space: nowrap;
+    }
+    .btn-add-balance:hover { background: var(--color-red-40); }
+    .btn-add-balance:active { background: var(--color-red-50); }
+    .btn-add-balance:focus-visible {
+      outline: none;
+      box-shadow: var(--focus-ring);
+    }
+
+    /* --- Service cards grid --- */
+    .services-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-sm);
+      margin-bottom: var(--space-xl);
+    }
+    .service-card {
+      background: var(--color-bg);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-xl);
+      padding: var(--space-md);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-height: 130px;
+      cursor: pointer;
+      transition: background var(--transition-fast), box-shadow var(--transition-fast);
+      text-decoration: none;
+      color: var(--color-text);
+    }
+    .service-card:hover { background: var(--color-bg-muted); }
+    .service-card:active { background: var(--color-bg-subtle); }
+    .service-card:focus-visible {
+      outline: none;
+      box-shadow: var(--focus-ring);
+    }
+    .service-card__icon {
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: var(--space-lg);
+      color: var(--color-text);
+    }
+    .service-card__label {
+      font-size: var(--paragraph-md-size);
+      line-height: var(--paragraph-md-line);
+      font-weight: var(--font-weight-medium);
+    }
+
+    /* --- Section headers --- */
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: var(--space-sm);
+    }
+    .section-header__title {
+      font-size: var(--headline-xs-size);
+      line-height: var(--headline-xs-line);
+      font-weight: var(--font-weight-semibold);
+    }
+    .section-header__link {
+      font-size: var(--paragraph-sm-size);
+      color: var(--color-text-link);
+      text-decoration: none;
+      font-weight: var(--font-weight-medium);
+      cursor: pointer;
+      background: none;
+      border: none;
+      font-family: var(--font-body);
+    }
+    .section-header__link:hover { text-decoration: underline; }
+
+    /* --- Payment method rows --- */
+    .payment-method {
+      display: flex;
+      align-items: center;
+      gap: var(--space-sm);
+      padding: var(--space-sm) 0;
+      border-bottom: 1px solid var(--color-border);
+    }
+    .payment-method:last-child { border-bottom: none; }
+    .payment-method__icon {
+      width: 40px;
+      height: 28px;
+      background: var(--color-bg-subtle);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      font-size: 10px;
+      font-weight: var(--font-weight-bold);
+    }
+    .payment-method__info { flex: 1; }
+    .payment-method__name {
+      font-size: var(--paragraph-sm-size);
+      font-weight: var(--font-weight-medium);
+    }
+    .payment-method__detail {
+      font-size: var(--paragraph-xs-size);
+      color: var(--color-text-muted);
+    }
+    .payment-method__badge {
+      font-size: var(--label-xs-size);
+      color: var(--color-text-muted);
+      background: var(--color-bg-muted);
+      padding: var(--space-xxxs) var(--space-xs);
+      border-radius: var(--radius-full);
+    }
+
+    /* --- Discount banner --- */
+    .discount-banner {
+      display: flex;
+      align-items: center;
+      gap: var(--space-sm);
+      padding: var(--space-md);
+      background: var(--color-bg-subtle);
+      border-radius: var(--radius-lg);
+      cursor: pointer;
+      transition: background var(--transition-fast);
+      margin-bottom: var(--space-xl);
+    }
+    .discount-banner:hover { background: var(--color-bg-muted); }
+    .discount-banner__icon {
+      width: 40px;
+      height: 40px;
+      border-radius: var(--radius-full);
+      background: #e8f9e0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .discount-banner__content { flex: 1; }
+    .discount-banner__title {
+      font-size: var(--paragraph-sm-size);
+      font-weight: var(--font-weight-semibold);
+    }
+    .discount-banner__subtitle {
+      font-size: var(--paragraph-xs-size);
+      color: var(--color-text-muted);
+    }
+    .discount-banner__arrow {
+      color: var(--color-text-muted);
+      flex-shrink: 0;
+    }
+
+    /* --- Transaction list --- */
+    .transaction {
+      display: flex;
+      align-items: center;
+      gap: var(--space-sm);
+      padding: var(--space-sm) 0;
+      border-bottom: 1px solid var(--color-border);
+      cursor: pointer;
+      transition: background var(--transition-fast);
+    }
+    .transaction:last-child { border-bottom: none; }
+    .transaction:hover { background: var(--color-bg-subtle); }
+    .transaction__icon {
+      width: 40px;
+      height: 40px;
+      border-radius: var(--radius-full);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .transaction__icon--topup { background: #e8f9e0; color: var(--color-success); }
+    .transaction__icon--purchase { background: #fde8e8; color: var(--color-rebtel-red); }
+    .transaction__icon--mobile { background: #eee5ff; color: var(--color-purple); }
+    .transaction__info { flex: 1; }
+    .transaction__name {
+      font-size: var(--paragraph-sm-size);
+      font-weight: var(--font-weight-medium);
+    }
+    .transaction__detail {
+      font-size: var(--paragraph-xs-size);
+      color: var(--color-text-muted);
+    }
+    .transaction__amount {
+      font-size: var(--paragraph-sm-size);
+      font-weight: var(--font-weight-semibold);
+      text-align: right;
+    }
+    .transaction__amount--positive { color: var(--color-success); }
+    .transaction__amount--negative { color: var(--color-text); }
+
+    /* --- Empty state --- */
+    .empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: var(--space-xxxxl) var(--space-xl);
+    }
+    .empty-state__icon {
+      width: 64px;
+      height: 64px;
+      border-radius: var(--radius-full);
+      background: var(--color-bg-muted);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: var(--space-lg);
+      color: var(--color-text-muted);
+    }
+    .empty-state__title {
+      font-size: var(--headline-xs-size);
+      font-weight: var(--font-weight-semibold);
+      margin-bottom: var(--space-xs);
+    }
+    .empty-state__description {
+      font-size: var(--paragraph-sm-size);
+      line-height: var(--paragraph-sm-line);
+      color: var(--color-text-secondary);
+      margin-bottom: var(--space-xl);
+      max-width: 280px;
+    }
+
+    /* Primary button */
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      padding: var(--space-sm) var(--space-xl);
+      background: var(--color-rebtel-red);
+      color: var(--color-text-inverse);
+      font-family: var(--font-body);
+      font-size: var(--label-md-size);
+      font-weight: var(--font-weight-semibold);
+      line-height: var(--label-md-line);
+      border: none;
+      border-radius: var(--radius-lg);
+      cursor: pointer;
+      transition: background var(--transition-fast);
+      min-height: 48px;
+    }
+    .btn-primary:hover { background: var(--color-red-40); }
+    .btn-primary:active { background: var(--color-red-50); }
+    .btn-primary:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+
+    /* Secondary button */
+    .btn-secondary {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      padding: var(--space-sm) var(--space-xl);
+      background: transparent;
+      color: var(--color-text);
+      font-family: var(--font-body);
+      font-size: var(--label-md-size);
+      font-weight: var(--font-weight-semibold);
+      line-height: var(--label-md-line);
+      border: 1px solid var(--color-border-strong);
+      border-radius: var(--radius-lg);
+      cursor: pointer;
+      transition: background var(--transition-fast);
+      min-height: 48px;
+    }
+    .btn-secondary:hover { background: var(--color-bg-muted); }
+    .btn-secondary:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+
+    /* Card wrapper */
+    .card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      padding: var(--space-md);
+      margin-bottom: var(--space-xl);
+    }
+
+    /* Empty transactions */
+    .empty-transactions {
+      text-align: center;
+      padding: var(--space-xl);
+      color: var(--color-text-muted);
+      font-size: var(--paragraph-sm-size);
+    }
+
+    /* --- Account greeting --- */
+    .account-greeting {
+      margin-bottom: var(--space-xl);
+    }
+    .account-greeting__hello {
+      font-size: var(--paragraph-md-size);
+      color: var(--color-text-secondary);
+      margin-bottom: var(--space-xxxs);
+    }
+    .account-greeting__name {
+      font-family: var(--font-display);
+      font-size: var(--display-lg-size);
+      line-height: var(--display-lg-line);
+      font-weight: var(--font-weight-bold);
+    }
+
+    /* --- Wallet card (on Account screen) --- */
+    .wallet-card {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: var(--space-xl) var(--space-lg);
+      background: var(--color-bg-subtle);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-xl);
+      cursor: pointer;
+      transition: background var(--transition-fast);
+      margin-bottom: var(--space-xl);
+    }
+    .wallet-card:hover { background: var(--color-bg-muted); }
+    .wallet-card:active { background: var(--color-grey-06); }
+    .wallet-card__left { display: flex; flex-direction: column; gap: var(--space-xxxs); }
+    .wallet-card__label {
+      font-size: var(--paragraph-xs-size);
+      color: var(--color-text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      font-weight: var(--font-weight-semibold);
+    }
+    .wallet-card__balance {
+      font-family: var(--font-display);
+      font-size: var(--display-md-size);
+      line-height: var(--display-md-line);
+      font-weight: var(--font-weight-bold);
+    }
+
+    /* --- Account menu list --- */
+    .account-menu {
+      list-style: none;
+      margin-top: auto;
+      padding-top: var(--space-xl);
+    }
+    .account-menu__item {
+      padding: var(--space-sm) 0;
+      font-size: var(--paragraph-md-size);
+      font-weight: var(--font-weight-medium);
+      color: var(--color-text);
+      cursor: pointer;
+      transition: color var(--transition-fast);
+    }
+    .account-menu__item:hover {
+      color: var(--color-text-secondary);
+    }
+
+    /* --- Sub-screen nav bar --- */
+    .sub-nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 var(--space-md);
+      height: var(--nav-bar-height);
+      flex-shrink: 0;
+    }
+    .sub-nav__back {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 40px;
+      height: 40px;
+      border: none;
+      background: none;
+      border-radius: var(--radius-full);
+      cursor: pointer;
+      color: var(--color-text);
+      transition: background var(--transition-fast);
+    }
+    .sub-nav__back:hover { background: var(--color-bg-muted); }
+    .sub-nav__title {
+      font-size: var(--headline-xs-size);
+      font-weight: var(--font-weight-semibold);
+      line-height: var(--headline-xs-line);
+    }
+    .sub-nav__spacer { width: 40px; }
+
+    /* --- Amount selector --- */
+    .amount-pills {
+      display: flex;
+      gap: var(--space-sm);
+      margin-bottom: var(--space-lg);
+    }
+    .amount-pill {
+      flex: 1;
+      padding: var(--space-sm) var(--space-xs);
+      background: var(--color-bg);
+      border: 1.5px solid var(--color-border-strong);
+      border-radius: var(--radius-lg);
+      font-family: var(--font-body);
+      font-size: var(--label-md-size);
+      font-weight: var(--font-weight-semibold);
+      text-align: center;
+      cursor: pointer;
+      transition: border-color var(--transition-fast), background var(--transition-fast);
+      min-height: 48px;
+      color: var(--color-text);
+    }
+    .amount-pill:hover {
+      border-color: var(--color-grey-03);
+      background: var(--color-bg-muted);
+    }
+    .amount-pill--selected {
+      border-color: var(--color-rebtel-red);
+      background: #fde8e8;
+      color: var(--color-rebtel-red);
+    }
+    .amount-pill:focus-visible {
+      outline: none;
+      box-shadow: var(--focus-ring);
+    }
+
+    .amount-custom {
+      margin-bottom: var(--space-xl);
+    }
+    .amount-custom__label {
+      font-size: var(--paragraph-sm-size);
+      color: var(--color-text-secondary);
+      margin-bottom: var(--space-xs);
+      display: block;
+    }
+    .amount-custom__input-wrap {
+      position: relative;
+    }
+    .amount-custom__prefix {
+      position: absolute;
+      left: var(--space-md);
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: var(--headline-sm-size);
+      font-weight: var(--font-weight-bold);
+      color: var(--color-text);
+    }
+    .amount-custom__input {
+      width: 100%;
+      padding: var(--space-sm) var(--space-md) var(--space-sm) 2.25rem;
+      font-family: var(--font-body);
+      font-size: var(--headline-sm-size);
+      font-weight: var(--font-weight-bold);
+      line-height: var(--headline-sm-line);
+      color: var(--color-text);
+      background: var(--color-bg);
+      border: 1.5px solid var(--color-border-strong);
+      border-radius: var(--radius-lg);
+      transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+      min-height: 56px;
+    }
+    .amount-custom__input::placeholder {
+      color: var(--color-text-muted);
+      font-weight: var(--font-weight-normal);
+    }
+    .amount-custom__input:focus {
+      outline: none;
+      border-color: var(--color-rebtel-red);
+      box-shadow: 0 0 0 2px var(--color-red-10);
+    }
+
+    /* --- Payment method radio list --- */
+    .method-option {
+      display: flex;
+      align-items: center;
+      gap: var(--space-sm);
+      padding: var(--space-md);
+      border: 1.5px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      cursor: pointer;
+      transition: border-color var(--transition-fast), background var(--transition-fast);
+      margin-bottom: var(--space-sm);
+    }
+    .method-option:hover { background: var(--color-bg-subtle); }
+    .method-option--selected {
+      border-color: var(--color-rebtel-red);
+      background: #fde8e8;
+    }
+    .method-option__radio {
+      width: 20px;
+      height: 20px;
+      border-radius: var(--radius-full);
+      border: 2px solid var(--color-grey-05);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: border-color var(--transition-fast);
+    }
+    .method-option--selected .method-option__radio {
+      border-color: var(--color-rebtel-red);
+    }
+    .method-option__radio-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: var(--radius-full);
+      background: var(--color-rebtel-red);
+      display: none;
+    }
+    .method-option--selected .method-option__radio-dot {
+      display: block;
+    }
+
+    /* --- Confirm screen summary --- */
+    .confirm-summary {
+      background: var(--color-bg-subtle);
+      border-radius: var(--radius-lg);
+      padding: var(--space-lg);
+      margin-bottom: var(--space-xl);
+    }
+    .confirm-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: var(--space-xs) 0;
+    }
+    .confirm-row + .confirm-row {
+      border-top: 1px solid var(--color-border);
+    }
+    .confirm-row__label {
+      font-size: var(--paragraph-sm-size);
+      color: var(--color-text-secondary);
+    }
+    .confirm-row__value {
+      font-size: var(--paragraph-sm-size);
+      font-weight: var(--font-weight-semibold);
+    }
+    .confirm-row--total .confirm-row__label {
+      font-size: var(--paragraph-md-size);
+      font-weight: var(--font-weight-semibold);
+      color: var(--color-text);
+    }
+    .confirm-row--total .confirm-row__value {
+      font-size: var(--headline-sm-size);
+      font-weight: var(--font-weight-bold);
+      color: var(--color-text);
+    }
+
+    /* --- Success screen --- */
+    .success-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      padding: var(--space-xxxl) var(--space-xl) var(--space-xl);
+    }
+    .success-state__icon {
+      width: 72px;
+      height: 72px;
+      border-radius: var(--radius-full);
+      background: #e8f9e0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: var(--space-lg);
+    }
+    .success-state__title {
+      font-family: var(--font-display);
+      font-size: var(--display-md-size);
+      line-height: var(--display-md-line);
+      font-weight: var(--font-weight-bold);
+      margin-bottom: var(--space-xs);
+    }
+    .success-state__subtitle {
+      font-size: var(--paragraph-md-size);
+      color: var(--color-text-secondary);
+      margin-bottom: var(--space-xxl);
+    }
+    .success-state__balance-label {
+      font-size: var(--paragraph-sm-size);
+      color: var(--color-text-secondary);
+      margin-bottom: var(--space-xxs);
+    }
+    .success-state__balance {
+      font-family: var(--font-display);
+      font-size: var(--display-lg-size);
+      line-height: var(--display-lg-line);
+      font-weight: var(--font-weight-bold);
+      margin-bottom: var(--space-xxl);
+    }
+
+    /* --- Sticky bottom action --- */
+    .bottom-action {
+      padding: var(--space-md);
+      background: var(--color-bg);
+      border-top: 1px solid var(--color-border);
+      flex-shrink: 0;
+    }
+
+    /* --- Checkout line items --- */
+    .checkout-product {
+      display: flex;
+      align-items: center;
+      gap: var(--space-sm);
+      padding-bottom: var(--space-lg);
+      margin-bottom: var(--space-lg);
+      border-bottom: 1px solid var(--color-border);
+    }
+    .checkout-product__icon {
+      width: 48px;
+      height: 48px;
+      border-radius: var(--radius-lg);
+      background: var(--color-bg-muted);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      color: var(--color-text-secondary);
+    }
+    .checkout-product__name {
+      font-size: var(--paragraph-md-size);
+      font-weight: var(--font-weight-semibold);
+    }
+    .checkout-product__detail {
+      font-size: var(--paragraph-sm-size);
+      color: var(--color-text-secondary);
+    }
+
+    .checkout-lines {
+      margin-bottom: var(--space-xl);
+    }
+    .checkout-line {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: var(--space-xs) 0;
+    }
+    .checkout-line__label {
+      font-size: var(--paragraph-sm-size);
+      color: var(--color-text-secondary);
+      display: flex;
+      align-items: center;
+      gap: var(--space-xs);
+    }
+    .checkout-line__change {
+      font-size: var(--paragraph-xs-size);
+      color: var(--color-text-link);
+      text-decoration: none;
+      cursor: pointer;
+      background: none;
+      border: none;
+      font-family: var(--font-body);
+    }
+    .checkout-line__change:hover { text-decoration: underline; }
+    .checkout-line__value {
+      font-size: var(--paragraph-sm-size);
+      font-weight: var(--font-weight-medium);
+    }
+    .checkout-line__value--discount {
+      color: var(--color-success);
+    }
+    .checkout-line--total {
+      border-top: 1px solid var(--color-border);
+      margin-top: var(--space-xs);
+      padding-top: var(--space-sm);
+    }
+    .checkout-line--total .checkout-line__label {
+      font-size: var(--paragraph-md-size);
+      font-weight: var(--font-weight-semibold);
+      color: var(--color-text);
+    }
+    .checkout-line--total .checkout-line__value {
+      font-size: var(--headline-xs-size);
+      font-weight: var(--font-weight-bold);
+    }
+
+    /* --- Checkout method row --- */
+    .checkout-method {
+      display: flex;
+      align-items: center;
+      gap: var(--space-sm);
+      padding: var(--space-md);
+      background: var(--color-bg-subtle);
+      border-radius: var(--radius-lg);
+      margin-bottom: var(--space-xl);
+    }
+    .checkout-method__info { flex: 1; }
+
+    /* --- Success detail list --- */
+    .success-details {
+      width: 100%;
+      max-width: 300px;
+      margin: 0 auto var(--space-xxl);
+    }
+    .success-detail {
+      display: flex;
+      justify-content: space-between;
+      padding: var(--space-xs) 0;
+      font-size: var(--paragraph-sm-size);
+    }
+    .success-detail__label { color: var(--color-text-secondary); }
+    .success-detail__value { font-weight: var(--font-weight-medium); }
+
+    /* --- Drag handle for reorder --- */
+    .drag-handle {
+      color: var(--color-text-muted);
+      cursor: grab;
+      flex-shrink: 0;
+      padding: var(--space-xxs);
+    }
+
+    /* --- Payment method card (management) --- */
+    .method-card {
+      display: flex;
+      align-items: center;
+      gap: var(--space-sm);
+      padding: var(--space-md);
+      background: var(--color-bg);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      margin-bottom: var(--space-sm);
+    }
+    .method-card__actions {
+      display: flex;
+      gap: var(--space-xs);
+    }
+    .method-card__action {
+      width: 36px;
+      height: 36px;
+      border: none;
+      background: var(--color-bg-muted);
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: var(--color-text-secondary);
+      transition: background var(--transition-fast), color var(--transition-fast);
+    }
+    .method-card__action:hover {
+      background: var(--color-bg-subtle);
+      color: var(--color-text);
+    }
+    .method-card__action--danger:hover {
+      background: #fde8e8;
+      color: var(--color-rebtel-red);
+    }
+
+    /* --- Transaction detail --- */
+    .detail-header {
+      text-align: center;
+      padding-bottom: var(--space-xl);
+      margin-bottom: var(--space-xl);
+      border-bottom: 1px solid var(--color-border);
+    }
+    .detail-header__amount {
+      font-family: var(--font-display);
+      font-size: var(--display-lg-size);
+      line-height: var(--display-lg-line);
+      font-weight: var(--font-weight-bold);
+      margin-bottom: var(--space-xxs);
+    }
+    .detail-header__amount--positive { color: var(--color-success); }
+    .detail-header__amount--negative { color: var(--color-text); }
+    .detail-header__label {
+      font-size: var(--paragraph-sm-size);
+      color: var(--color-text-secondary);
+    }
+    .detail-rows { margin-bottom: var(--space-xl); }
+    .detail-row {
+      display: flex;
+      justify-content: space-between;
+      padding: var(--space-sm) 0;
+      border-bottom: 1px solid var(--color-border);
+    }
+    .detail-row:last-child { border-bottom: none; }
+    .detail-row__label {
+      font-size: var(--paragraph-sm-size);
+      color: var(--color-text-secondary);
+    }
+    .detail-row__value {
+      font-size: var(--paragraph-sm-size);
+      font-weight: var(--font-weight-medium);
+      text-align: right;
+    }
+
+    /* --- Discount list --- */
+    .discount-item {
+      display: flex;
+      align-items: center;
+      gap: var(--space-sm);
+      padding: var(--space-md);
+      background: var(--color-bg);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      margin-bottom: var(--space-sm);
+    }
+    .discount-item__icon {
+      width: 40px;
+      height: 40px;
+      border-radius: var(--radius-full);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .discount-item__icon--active { background: #e8f9e0; }
+    .discount-item__icon--used { background: var(--color-bg-muted); }
+    .discount-item__icon--expired { background: var(--color-bg-muted); }
+    .discount-item__content { flex: 1; }
+    .discount-item__title {
+      font-size: var(--paragraph-sm-size);
+      font-weight: var(--font-weight-semibold);
+    }
+    .discount-item__detail {
+      font-size: var(--paragraph-xs-size);
+      color: var(--color-text-muted);
+    }
+    .status-badge {
+      font-size: var(--label-xs-size);
+      font-weight: var(--font-weight-semibold);
+      padding: var(--space-xxxs) var(--space-xs);
+      border-radius: var(--radius-full);
+      flex-shrink: 0;
+    }
+    .status-badge--active {
+      background: #e8f9e0;
+      color: #2d8a0f;
+    }
+    .status-badge--used {
+      background: var(--color-bg-muted);
+      color: var(--color-text-muted);
+    }
+    .status-badge--expired {
+      background: #fde8e8;
+      color: var(--color-rebtel-red);
+    }
+
+    /* --- Subscription cards --- */
+    .sub-card {
+      padding: var(--space-md);
+      background: var(--color-bg);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      margin-bottom: var(--space-sm);
+    }
+    .sub-card__header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: var(--space-xs);
+    }
+    .sub-card__name {
+      font-size: var(--paragraph-md-size);
+      font-weight: var(--font-weight-semibold);
+    }
+    .sub-card__details {
+      font-size: var(--paragraph-sm-size);
+      color: var(--color-text-secondary);
+      margin-bottom: var(--space-sm);
+    }
+    .sub-card__actions {
+      display: flex;
+      gap: var(--space-sm);
+    }
+    .sub-card__btn {
+      font-family: var(--font-body);
+      font-size: var(--label-sm-size);
+      font-weight: var(--font-weight-medium);
+      padding: var(--space-xs) var(--space-md);
+      border-radius: var(--radius-md);
+      border: 1px solid var(--color-border-strong);
+      background: none;
+      cursor: pointer;
+      color: var(--color-text);
+      transition: background var(--transition-fast);
+    }
+    .sub-card__btn:hover { background: var(--color-bg-muted); }
+    .sub-card__btn--danger {
+      border-color: var(--color-rebtel-red);
+      color: var(--color-rebtel-red);
+    }
+    .sub-card__btn--danger:hover { background: #fde8e8; }
+    .sub-card__btn--resume {
+      border-color: var(--color-success);
+      color: #2d8a0f;
+    }
+    .sub-card__btn--resume:hover { background: #e8f9e0; }
+    .status-badge--paused {
+      background: #fff3e0;
+      color: #c25e00;
+    }
+
+    /* --- Refund form --- */
+    .refund-reasons { margin-bottom: var(--space-lg); }
+    .refund-reason {
+      display: flex;
+      align-items: center;
+      gap: var(--space-sm);
+      padding: var(--space-sm) var(--space-md);
+      border: 1.5px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      margin-bottom: var(--space-xs);
+      cursor: pointer;
+      font-size: var(--paragraph-sm-size);
+      transition: border-color var(--transition-fast), background var(--transition-fast);
+    }
+    .refund-reason:hover { background: var(--color-bg-subtle); }
+    .refund-reason--selected {
+      border-color: var(--color-rebtel-red);
+      background: #fde8e8;
+    }
+    .refund-textarea {
+      width: 100%;
+      min-height: 80px;
+      padding: var(--space-sm) var(--space-md);
+      font-family: var(--font-body);
+      font-size: var(--paragraph-sm-size);
+      color: var(--color-text);
+      background: var(--color-bg);
+      border: 1.5px solid var(--color-border-strong);
+      border-radius: var(--radius-lg);
+      resize: vertical;
+    }
+    .refund-textarea:focus {
+      outline: none;
+      border-color: var(--color-rebtel-red);
+      box-shadow: 0 0 0 2px var(--color-red-10);
+    }
+
+    /* --- Home screen --- */
+    .home-search {
+      display: flex;
+      align-items: center;
+      gap: var(--space-sm);
+      margin-bottom: var(--space-lg);
+    }
+    .home-search__input {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: var(--space-xs);
+      padding: var(--space-sm) var(--space-md);
+      background: var(--color-bg-muted);
+      border: none;
+      border-radius: var(--radius-full);
+      font-family: var(--font-body);
+      font-size: var(--paragraph-sm-size);
+      color: var(--color-text-muted);
+      min-height: 44px;
+    }
+    .home-search__icon-btn {
+      width: 44px;
+      height: 44px;
+      border: none;
+      background: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--color-text);
+      cursor: pointer;
+      border-radius: var(--radius-full);
+    }
+    .home-search__avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: var(--radius-full);
+      background: var(--color-success);
+      flex-shrink: 0;
+    }
+
+    .activity-card {
+      background: var(--color-bg-subtle);
+      border-radius: var(--radius-xl);
+      padding: var(--space-md);
+      margin-bottom: var(--space-sm);
+    }
+    .activity-card--topup {
+      background: #fdf6ec;
+    }
+    .activity-card__header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: var(--space-sm);
+    }
+    .activity-card__badge {
+      font-size: var(--label-xs-size);
+      font-weight: var(--font-weight-semibold);
+      background: var(--color-bg);
+      padding: var(--space-xxxs) var(--space-xs);
+      border-radius: var(--radius-sm);
+    }
+    .activity-card__time {
+      font-size: var(--paragraph-xs-size);
+      color: var(--color-text-muted);
+    }
+    .activity-card__more {
+      border: none;
+      background: none;
+      color: var(--color-text-muted);
+      cursor: pointer;
+      padding: var(--space-xxs);
+    }
+    .activity-card__contact {
+      display: flex;
+      align-items: center;
+      gap: var(--space-xs);
+      margin-bottom: var(--space-xs);
+    }
+    .activity-card__flags {
+      display: flex;
+      position: relative;
+      width: 44px;
+      flex-shrink: 0;
+    }
+    .activity-card__flag {
+      width: 28px;
+      height: 28px;
+      border-radius: var(--radius-full);
+      border: 2px solid var(--color-bg-subtle);
+    }
+    .activity-card__flag--1 { background: #009639; z-index: 1; }
+    .activity-card__flag--2 { background: #ccc; margin-left: -10px; z-index: 0; }
+    .activity-card__name {
+      font-size: var(--headline-xs-size);
+      font-weight: var(--font-weight-semibold);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .activity-card__details {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: var(--space-sm);
+      font-size: var(--paragraph-sm-size);
+      color: var(--color-text-secondary);
+    }
+    .activity-card__status {
+      display: flex;
+      align-items: center;
+      gap: var(--space-xxs);
+      font-size: var(--paragraph-sm-size);
+    }
+    .activity-card__dot {
+      width: 8px;
+      height: 8px;
+      border-radius: var(--radius-full);
+      flex-shrink: 0;
+    }
+    .activity-card__dot--green { background: var(--color-success); }
+    .activity-card__dot--red { background: var(--color-rebtel-red); }
+    .activity-card__actions {
+      display: flex;
+      gap: var(--space-sm);
+    }
+    .activity-card__btn {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--space-xs);
+      padding: var(--space-sm);
+      background: var(--color-bg);
+      border: none;
+      border-radius: var(--radius-lg);
+      font-family: var(--font-body);
+      font-size: var(--label-sm-size);
+      font-weight: var(--font-weight-medium);
+      cursor: pointer;
+      min-height: 44px;
+      color: var(--color-text);
+      transition: background var(--transition-fast);
+    }
+    .activity-card__btn:hover { background: var(--color-bg-muted); }
+    .activity-card__btn--send {
+      background: var(--color-black);
+      color: var(--color-white);
+    }
+    .activity-card__btn--send:hover { background: var(--color-grey-01); }
+    .activity-card__topup-info {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: var(--space-sm);
+    }
+    .activity-card__topup-col {
+      font-size: var(--paragraph-sm-size);
+    }
+    .activity-card__topup-label {
+      font-size: var(--paragraph-xs-size);
+      color: var(--color-text-muted);
+      margin-bottom: var(--space-xxxs);
+    }
+
+    /* --- Services screen --- */
+    .services-header {
+      margin-bottom: var(--space-xl);
+    }
+    .services-header__label {
+      font-size: var(--paragraph-sm-size);
+      color: var(--color-text-secondary);
+      margin-bottom: var(--space-xxs);
+    }
+    .services-header__row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-md);
+    }
+    .services-header__balance {
+      font-family: var(--font-display);
+      font-size: var(--display-lg-size);
+      line-height: var(--display-lg-line);
+      font-weight: var(--font-weight-bold);
+    }
+    .services-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-sm);
+    }
+    .service-card {
+      background: var(--color-bg);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-xl);
+      padding: var(--space-md);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-height: 130px;
+      cursor: pointer;
+      transition: background var(--transition-fast);
+      text-decoration: none;
+      color: var(--color-text);
+    }
+    .service-card:hover { background: var(--color-bg-muted); }
+    .service-card__icon {
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: var(--space-lg);
+      color: var(--color-text);
+    }
+    .service-card__label {
+      font-size: var(--paragraph-md-size);
+      line-height: var(--paragraph-md-line);
+      font-weight: var(--font-weight-medium);
+    }
+    .btn-add-credits {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: var(--space-sm) var(--space-xl);
+      background: var(--color-rebtel-red);
+      color: var(--color-text-inverse);
+      font-family: var(--font-body);
+      font-size: var(--label-sm-size);
+      font-weight: var(--font-weight-semibold);
+      line-height: var(--label-sm-line);
+      border: none;
+      border-radius: var(--radius-full);
+      cursor: pointer;
+      transition: background var(--transition-fast);
+      min-height: 44px;
+      white-space: nowrap;
+    }
+    .btn-add-credits:hover { background: var(--color-red-40); }
+    .btn-add-credits:active { background: var(--color-red-50); }
+
+    /* --- Demo state switcher --- */
+    .demo-switcher {
+      position: fixed;
+      bottom: var(--space-md);
+      left: var(--space-md);
+      background: var(--color-grey-01);
+      border-radius: var(--radius-lg);
+      padding: var(--space-sm);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-xxs);
+      z-index: 100;
+    }
+    .demo-switcher__label {
+      font-size: 10px;
+      color: var(--color-grey-04);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-weight: var(--font-weight-semibold);
+      padding: 0 var(--space-xs);
+    }
+    .demo-switcher__btn {
+      font-family: var(--font-body);
+      font-size: var(--paragraph-xs-size);
+      color: var(--color-grey-05);
+      background: none;
+      border: none;
+      text-align: left;
+      padding: var(--space-xxs) var(--space-xs);
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: background var(--transition-fast), color var(--transition-fast);
+    }
+    .demo-switcher__btn:hover {
+      background: var(--color-grey-02);
+      color: var(--color-white);
+    }
+  </style>
+</head>
+<body>
+  <div class="app-frame">
+
+    <!-- ========================================== -->
+    <!-- SCREEN: Home -->
+    <!-- ========================================== -->
+    <div id="screen-home" class="screen">
+      <main class="main fade-in" style="padding-top: var(--space-md);">
+
+        <!-- Search bar -->
+        <div class="home-search">
+          <div class="home-search__input">
+            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+            Search contacts
+          </div>
+          <button class="home-search__icon-btn" aria-label="Keypad">
+            <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><circle cx="6" cy="6" r="1.5"/><circle cx="12" cy="6" r="1.5"/><circle cx="18" cy="6" r="1.5"/><circle cx="6" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="18" cy="12" r="1.5"/><circle cx="6" cy="18" r="1.5"/><circle cx="12" cy="18" r="1.5"/><circle cx="18" cy="18" r="1.5"/></svg>
+          </button>
+          <button class="home-search__icon-btn" aria-label="View">
+            <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+          <div class="home-search__avatar"></div>
+        </div>
+
+        <!-- Activity: Calling card 1 -->
+        <div class="activity-card">
+          <div class="activity-card__header">
+            <div style="display:flex; align-items:center; gap: var(--space-xs);">
+              <span class="activity-card__badge">Calling</span>
+              <span class="activity-card__time">10 minutes ago</span>
+            </div>
+            <button class="activity-card__more" aria-label="More">
+              <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><circle cx="3" cy="8" r="1.5"/><circle cx="8" cy="8" r="1.5"/><circle cx="13" cy="8" r="1.5"/></svg>
+            </button>
+          </div>
+          <div class="activity-card__contact">
+            <div class="activity-card__flags">
+              <div class="activity-card__flag activity-card__flag--1"></div>
+              <div class="activity-card__flag activity-card__flag--2"></div>
+            </div>
+            <p class="activity-card__name">Emil Lee Ann Bergst...</p>
+          </div>
+          <div class="activity-card__details">
+            <span class="activity-card__status"><span class="activity-card__dot activity-card__dot--green"></span> 340 minutes left</span>
+            <span>Local time 2:30 PM</span>
+          </div>
+          <div class="activity-card__actions">
+            <button class="activity-card__btn">
+              <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z"/></svg>
+              Call again
+            </button>
+          </div>
+        </div>
+
+        <!-- Activity: Top-up card -->
+        <div class="activity-card activity-card--topup">
+          <div class="activity-card__header">
+            <div style="display:flex; align-items:center; gap: var(--space-xs);">
+              <span class="activity-card__badge">Top-up</span>
+              <span class="activity-card__time">10 minutes ago</span>
+            </div>
+            <button class="activity-card__more" aria-label="More">
+              <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><circle cx="3" cy="8" r="1.5"/><circle cx="8" cy="8" r="1.5"/><circle cx="13" cy="8" r="1.5"/></svg>
+            </button>
+          </div>
+          <div class="activity-card__contact">
+            <div class="activity-card__flags">
+              <div class="activity-card__flag activity-card__flag--1"></div>
+              <div class="activity-card__flag activity-card__flag--2"></div>
+            </div>
+            <p class="activity-card__name">Emil Lee Ann Bergst...</p>
+          </div>
+          <div class="activity-card__topup-info">
+            <div class="activity-card__topup-col">
+              <p class="activity-card__topup-label">You sent</p>
+              <p>UGX 10499</p>
+            </div>
+            <div class="activity-card__topup-col" style="text-align: right;">
+              <p class="activity-card__topup-label">They received</p>
+              <p>Monthly Youtube &amp; Soc...</p>
+            </div>
+          </div>
+          <div class="activity-card__actions">
+            <button class="activity-card__btn">Products</button>
+            <button class="activity-card__btn activity-card__btn--send">
+              <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818l2.828 2.828L15 13.182"/></svg>
+              Send again
+            </button>
+          </div>
+        </div>
+
+        <!-- Activity: Calling card 2 -->
+        <div class="activity-card">
+          <div class="activity-card__header">
+            <div style="display:flex; align-items:center; gap: var(--space-xs);">
+              <span class="activity-card__badge">Calling</span>
+              <span class="activity-card__time">10 minutes ago</span>
+            </div>
+            <button class="activity-card__more" aria-label="More">
+              <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><circle cx="3" cy="8" r="1.5"/><circle cx="8" cy="8" r="1.5"/><circle cx="13" cy="8" r="1.5"/></svg>
+            </button>
+          </div>
+          <div class="activity-card__contact">
+            <div class="activity-card__flags">
+              <div class="activity-card__flag activity-card__flag--1"></div>
+              <div class="activity-card__flag activity-card__flag--2"></div>
+            </div>
+            <p class="activity-card__name">Emil Lee Ann Bergst...</p>
+          </div>
+          <div class="activity-card__details">
+            <span class="activity-card__status"><span class="activity-card__dot activity-card__dot--red"></span> 3 minutes left</span>
+            <span>Local time 2:30 PM</span>
+          </div>
+          <div class="activity-card__actions">
+            <button class="activity-card__btn">
+              <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z"/></svg>
+              Call again
+            </button>
+          </div>
+        </div>
+
+      </main>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- SCREEN: Services -->
+    <!-- ========================================== -->
+    <div id="screen-services" class="screen">
+      <main class="main fade-in">
+
+        <div class="wallet-card" onclick="navigate('wallet-home')">
+          <div class="wallet-card__left">
+            <span class="wallet-card__label">Wallet</span>
+            <span class="wallet-card__balance">$24.24</span>
+          </div>
+          <button class="btn-add-balance" onclick="event.stopPropagation(); navigate('add-balance')">Add funds</button>
+        </div>
+
+        <div class="services-grid">
+          <a href="#" class="service-card">
+            <div class="service-card__icon">
+              <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/></svg>
+            </div>
+            <span class="service-card__label">Rebtel<br>wireless</span>
+          </a>
+          <a href="#" class="service-card">
+            <div class="service-card__icon">
+              <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z"/></svg>
+            </div>
+            <span class="service-card__label">International<br>Calling</span>
+          </a>
+          <a href="#" class="service-card">
+            <div class="service-card__icon">
+              <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 1.5H8.25A2.25 2.25 0 006 3.75v16.5a2.25 2.25 0 002.25 2.25h7.5A2.25 2.25 0 0018 20.25V3.75a2.25 2.25 0 00-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-3 18.75h3"/><path stroke-linecap="round" stroke-linejoin="round" d="M12 8.25v3.75m0 0v.75m0-.75h.75m-.75 0h-.75"/></svg>
+            </div>
+            <span class="service-card__label">Mobile<br>Top-up</span>
+          </a>
+        </div>
+
+      </main>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- SCREEN: Account (main) -->
+    <!-- ========================================== -->
+    <div id="screen-account" class="screen active">
+      <main class="main fade-in">
+
+        <div class="account-greeting">
+          <p class="account-greeting__hello">Hello</p>
+          <h1 class="account-greeting__name">Maria Garcia</h1>
+        </div>
+
+        <div class="wallet-card" onclick="navigate('wallet-home')">
+          <div class="wallet-card__left">
+            <span class="wallet-card__label">Wallet</span>
+            <span class="wallet-card__balance">$24.24</span>
+          </div>
+          <button class="btn-add-balance" onclick="event.stopPropagation(); navigate('add-balance')">Add funds</button>
+        </div>
+
+        <div class="wallet-card" style="margin-top: calc(-1 * var(--space-md));">
+          <div class="wallet-card__left">
+            <span class="wallet-card__label">Calling</span>
+            <div style="display: flex; align-items: baseline; gap: var(--space-xs);">
+              <span class="wallet-card__balance" style="font-size: 14px; line-height: 20px; color: #0C8489;">€4.32</span>
+              <span style="font-size: var(--paragraph-sm-size); color: var(--color-text-muted);">Calling Credits</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: var(--space-xs); margin-top: var(--space-xxxs);">
+              <div style="width: 20px; height: 20px; border-radius: var(--radius-full); overflow: hidden; flex-shrink: 0; display: flex; align-items: center; justify-content: center;">
+                <svg width="20" height="20" viewBox="0 0 24 24"><clipPath id="flag-circle"><circle cx="12" cy="12" r="12"/></clipPath><g clip-path="url(#flag-circle)"><rect x="0" y="0" width="8" height="24" fill="#008751"/><rect x="8" y="0" width="8" height="24" fill="#FFFFFF"/><rect x="16" y="0" width="8" height="24" fill="#008751"/></g></svg>
+              </div>
+              <span style="font-size: var(--paragraph-sm-size); color: var(--color-text-muted);">53/100 minutes left</span>
+            </div>
+          </div>
+        </div>
+
+        <ul class="account-menu">
+          <li class="account-menu__item" onclick="navigate('subscriptions')">Your Subscriptions</li>
+          <li class="account-menu__item">Invite &amp; get free Rebtel Credits</li>
+          <li class="account-menu__item">Account activity</li>
+          <li class="account-menu__item">Monthly recaps</li>
+          <li class="account-menu__item">Settings</li>
+          <li class="account-menu__item">Help</li>
+        </ul>
+
+      </main>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- SCREEN: Wallet (dedicated screen) -->
+    <!-- ========================================== -->
+    <div id="screen-wallet-home" class="screen">
+      <header class="sub-nav">
+        <button class="sub-nav__back" onclick="navigate('account')" aria-label="Back">
+          <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+        </button>
+        <span class="sub-nav__title">Wallet</span>
+        <div class="sub-nav__spacer"></div>
+      </header>
+      <main class="main fade-in">
+
+        <div class="wallet-header">
+          <p class="wallet-header__label">Your balance</p>
+          <div class="wallet-header__row">
+            <span class="wallet-header__balance">$24.24</span>
+            <button class="btn-add-balance" onclick="navigate('add-balance')">Add funds</button>
+          </div>
+        </div>
+
+        <div class="section-header">
+          <h2 class="section-header__title">Discounts</h2>
+          <button class="section-header__link" onclick="navigate('discounts')">See all</button>
+        </div>
+        <div class="card">
+          <div class="discount-item">
+            <div class="discount-item__icon discount-item__icon--active">
+              <svg width="20" height="20" fill="none" stroke="#49CD18" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.568 3H5.25A2.25 2.25 0 003 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 005.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 009.568 3z"/><circle cx="6.75" cy="6.75" r="0.75" fill="#49CD18"/></svg>
+            </div>
+            <div class="discount-item__content">
+              <p class="discount-item__title">15% Welcome discount</p>
+              <p class="discount-item__detail">All services · Expires 24 Mar 2026</p>
+            </div>
+            <span class="status-badge status-badge--active">Active</span>
+          </div>
+          <div class="discount-item">
+            <div class="discount-item__icon discount-item__icon--active">
+              <svg width="20" height="20" fill="none" stroke="#49CD18" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.568 3H5.25A2.25 2.25 0 003 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 005.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 009.568 3z"/><circle cx="6.75" cy="6.75" r="0.75" fill="#49CD18"/></svg>
+            </div>
+            <div class="discount-item__content">
+              <p class="discount-item__title">$2 off mobile top-up</p>
+              <p class="discount-item__detail">Mobile top-up · Expires 10 Apr 2026</p>
+            </div>
+            <span class="status-badge status-badge--active">Active</span>
+          </div>
+        </div>
+
+        <div class="section-header">
+          <h2 class="section-header__title">Payment methods</h2>
+          <button class="section-header__link" onclick="navigate('payment-methods')">Manage</button>
+        </div>
+        <div class="card">
+          <div class="payment-method">
+            <div class="payment-method__icon" style="color: #1a1f71;">VISA</div>
+            <div class="payment-method__info">
+              <p class="payment-method__name">Visa ••4821</p>
+              <p class="payment-method__detail">Expires 08/27</p>
+            </div>
+            <span class="payment-method__badge">Primary</span>
+          </div>
+          <div class="payment-method">
+            <div class="payment-method__icon" style="color: #eb001b;">MC</div>
+            <div class="payment-method__info">
+              <p class="payment-method__name">Mastercard ••7733</p>
+              <p class="payment-method__detail">Expires 11/26</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="section-header">
+          <h2 class="section-header__title">Recent transactions</h2>
+          <button class="section-header__link" onclick="navigate('transactions')">See all</button>
+        </div>
+        <div>
+          <div class="transaction">
+            <div class="transaction__icon transaction__icon--topup">
+              <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+            </div>
+            <div class="transaction__info">
+              <p class="transaction__name">Balance top-up</p>
+              <p class="transaction__detail">Visa ••4821 · Today</p>
+            </div>
+            <span class="transaction__amount transaction__amount--positive">+$20.00</span>
+          </div>
+          <div class="transaction">
+            <div class="transaction__icon transaction__icon--purchase">
+              <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z"/></svg>
+            </div>
+            <div class="transaction__info">
+              <p class="transaction__name">Unlimited Nigeria</p>
+              <p class="transaction__detail">Subscription · 5 Mar</p>
+            </div>
+            <span class="transaction__amount transaction__amount--negative">-$9.99</span>
+          </div>
+          <div class="transaction">
+            <div class="transaction__icon transaction__icon--topup">
+              <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+            </div>
+            <div class="transaction__info">
+              <p class="transaction__name">Balance top-up</p>
+              <p class="transaction__detail">Visa ••4821 · 1 Mar</p>
+            </div>
+            <span class="transaction__amount transaction__amount--positive">+$50.00</span>
+          </div>
+          <div class="transaction">
+            <div class="transaction__icon transaction__icon--mobile">
+              <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 1.5H8.25A2.25 2.25 0 006 3.75v16.5a2.25 2.25 0 002.25 2.25h7.5A2.25 2.25 0 0018 20.25V3.75a2.25 2.25 0 00-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-3 18.75h3"/></svg>
+            </div>
+            <div class="transaction__info">
+              <p class="transaction__name">Mobile top-up · Nigeria</p>
+              <p class="transaction__detail">MTN · 28 Feb</p>
+            </div>
+            <span class="transaction__amount transaction__amount--negative">-$15.00</span>
+          </div>
+        </div>
+
+      </main>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- SCREEN: Add Balance — Step 1: Amount -->
+    <!-- ========================================== -->
+    <div id="screen-add-balance" class="screen">
+      <header class="sub-nav">
+        <button class="sub-nav__back" onclick="navigate('wallet-home')" aria-label="Back">
+          <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+        </button>
+        <span class="sub-nav__title">Add funds</span>
+        <div class="sub-nav__spacer"></div>
+      </header>
+      <main class="main fade-in">
+
+        <div style="margin-bottom: var(--space-lg);">
+          <p style="font-size: var(--paragraph-sm-size); color: var(--color-text-secondary); margin-bottom: var(--space-sm);">Select amount</p>
+          <div class="amount-pills">
+            <button class="amount-pill" onclick="selectAmount(this, 10)">$10</button>
+            <button class="amount-pill amount-pill--selected" onclick="selectAmount(this, 20)">$20</button>
+            <button class="amount-pill" onclick="selectAmount(this, 50)">$50</button>
+          </div>
+        </div>
+
+        <div class="amount-custom">
+          <label class="amount-custom__label">Or enter a custom amount</label>
+          <div class="amount-custom__input-wrap">
+            <span class="amount-custom__prefix">$</span>
+            <input class="amount-custom__input" type="number" placeholder="0.00" min="1" step="0.01" onfocus="clearPills()" id="custom-amount-input">
+          </div>
+        </div>
+
+        <div class="section-header">
+          <h2 class="section-header__title">Pay with</h2>
+        </div>
+        <div class="method-option method-option--selected" onclick="selectMethod(this)">
+          <div class="method-option__radio"><div class="method-option__radio-dot"></div></div>
+          <div class="payment-method__icon" style="color: #1a1f71;">VISA</div>
+          <div class="payment-method__info">
+            <p class="payment-method__name">Visa ••4821</p>
+            <p class="payment-method__detail">Expires 08/27</p>
+          </div>
+        </div>
+        <div class="method-option" onclick="selectMethod(this)">
+          <div class="method-option__radio"><div class="method-option__radio-dot"></div></div>
+          <div class="payment-method__icon" style="color: #eb001b;">MC</div>
+          <div class="payment-method__info">
+            <p class="payment-method__name">Mastercard ••7733</p>
+            <p class="payment-method__detail">Expires 11/26</p>
+          </div>
+        </div>
+
+        <div style="margin-top: var(--space-xxl); padding-top: var(--space-lg); border-top: 1px solid var(--color-border);">
+          <div style="display: flex; align-items: center; gap: var(--space-sm); padding: var(--space-md); background: var(--color-bg-subtle); border-radius: var(--radius-lg); cursor: pointer;">
+            <div style="width: 40px; height: 40px; border-radius: var(--radius-md); background: #e8f5e9; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+              <svg width="22" height="22" fill="none" stroke="#2e7d32" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18.75a60.07 60.07 0 0115.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 013 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 00-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 01-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 003 15h-.75M15 10.5a3 3 0 11-6 0 3 3 0 016 0zm3 0h.008v.008H18V10.5zm-12 0h.008v.008H6V10.5z"/></svg>
+            </div>
+            <div style="flex: 1;">
+              <p style="font-size: var(--paragraph-md-size); font-weight: var(--font-weight-medium); color: var(--color-text);">Deposit cash at a store</p>
+              <p style="font-size: var(--paragraph-sm-size); color: var(--color-text-secondary);">Add funds with cash at retail locations near you</p>
+            </div>
+            <svg width="20" height="20" fill="none" stroke="var(--color-text-muted)" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5"/></svg>
+          </div>
+          <p style="font-size: var(--paragraph-xs-size); color: var(--color-text-muted); margin-top: var(--space-xs); text-align: center;">Coming soon · US only</p>
+        </div>
+
+      </main>
+      <div class="bottom-action">
+        <button class="btn-primary" onclick="navigate('add-balance-confirm')">Continue</button>
+      </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- SCREEN: Add Balance — Step 2: Confirm -->
+    <!-- ========================================== -->
+    <div id="screen-add-balance-confirm" class="screen">
+      <header class="sub-nav">
+        <button class="sub-nav__back" onclick="navigate('add-balance')" aria-label="Back">
+          <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+        </button>
+        <span class="sub-nav__title">Confirm top-up</span>
+        <div class="sub-nav__spacer"></div>
+      </header>
+      <main class="main fade-in">
+
+        <div class="confirm-summary">
+          <div class="confirm-row">
+            <span class="confirm-row__label">Top-up amount</span>
+            <span class="confirm-row__value">$20.00</span>
+          </div>
+          <div class="confirm-row">
+            <span class="confirm-row__label">Payment method</span>
+            <span class="confirm-row__value">Visa ••4821</span>
+          </div>
+          <div class="confirm-row">
+            <span class="confirm-row__label">Current balance</span>
+            <span class="confirm-row__value">$24.24</span>
+          </div>
+          <div class="confirm-row confirm-row--total">
+            <span class="confirm-row__label">New balance</span>
+            <span class="confirm-row__value">$44.24</span>
+          </div>
+        </div>
+
+      </main>
+      <div class="bottom-action">
+        <button class="btn-primary" onclick="navigate('add-balance-success')">Add $20.00</button>
+      </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- SCREEN: Add Balance — Success -->
+    <!-- ========================================== -->
+    <div id="screen-add-balance-success" class="screen">
+      <main class="main fade-in">
+
+        <div class="success-state">
+          <div class="success-state__icon">
+            <svg width="32" height="32" fill="none" stroke="#49CD18" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
+          </div>
+          <h1 class="success-state__title">$20.00 added</h1>
+          <p class="success-state__subtitle">Paid with Visa ••4821</p>
+          <p class="success-state__balance-label">Your new balance</p>
+          <p class="success-state__balance">$44.24</p>
+        </div>
+
+      </main>
+      <div class="bottom-action">
+        <button class="btn-primary" onclick="navigate('wallet-home')">Done</button>
+      </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- SCREEN: Add Balance — Error -->
+    <!-- ========================================== -->
+    <div id="screen-add-balance-error" class="screen">
+      <main class="main fade-in">
+
+        <div class="success-state">
+          <div class="success-state__icon" style="background: #fde8e8;">
+            <svg width="32" height="32" fill="none" stroke="#E31B3B" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+          </div>
+          <h1 class="success-state__title">Payment failed</h1>
+          <p class="success-state__subtitle">Your card was declined. Try a different payment method or contact your bank.</p>
+        </div>
+
+      </main>
+      <div class="bottom-action" style="display: flex; flex-direction: column; gap: var(--space-sm);">
+        <button class="btn-primary" onclick="navigate('add-balance')">Try again</button>
+        <button class="btn-secondary" onclick="navigate('wallet-home')">Back to wallet</button>
+      </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- SCREEN: Checkout -->
+    <!-- ========================================== -->
+    <div id="screen-checkout" class="screen">
+      <header class="sub-nav">
+        <button class="sub-nav__back" onclick="navigate('wallet-home')" aria-label="Back">
+          <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+        </button>
+        <span class="sub-nav__title">Checkout</span>
+        <div class="sub-nav__spacer"></div>
+      </header>
+      <main class="main fade-in">
+
+        <!-- Product -->
+        <div class="checkout-product">
+          <div class="checkout-product__icon">
+            <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z"/></svg>
+          </div>
+          <div>
+            <p class="checkout-product__name">Unlimited Nigeria</p>
+            <p class="checkout-product__detail">Monthly calling plan</p>
+          </div>
+        </div>
+
+        <!-- Price breakdown -->
+        <div class="checkout-lines">
+          <div class="checkout-line">
+            <span class="checkout-line__label">Plan price</span>
+            <span class="checkout-line__value">$9.99</span>
+          </div>
+          <div class="checkout-line">
+            <span class="checkout-line__label">
+              Wallet balance
+            </span>
+            <span class="checkout-line__value checkout-line__value--discount">-$9.99</span>
+          </div>
+          <div class="checkout-line">
+            <span class="checkout-line__label">
+              Discount (15% Welcome)
+              <button class="checkout-line__change">Change</button>
+            </span>
+            <span class="checkout-line__value checkout-line__value--discount">-$0.00</span>
+          </div>
+          <div class="checkout-line checkout-line--total">
+            <span class="checkout-line__label">Amount to pay</span>
+            <span class="checkout-line__value">$0.00</span>
+          </div>
+        </div>
+
+        <!-- Payment method -->
+        <div class="section-header">
+          <h2 class="section-header__title">Payment method</h2>
+          <button class="section-header__link">Change</button>
+        </div>
+        <div class="checkout-method">
+          <div class="payment-method__icon" style="color: #1a1f71;">VISA</div>
+          <div class="checkout-method__info">
+            <p class="payment-method__name">Visa ••4821</p>
+            <p class="payment-method__detail">No charge — covered by wallet balance</p>
+          </div>
+        </div>
+
+        <!-- Balance after purchase -->
+        <div class="confirm-summary">
+          <div class="confirm-row">
+            <span class="confirm-row__label">Current wallet balance</span>
+            <span class="confirm-row__value">$24.24</span>
+          </div>
+          <div class="confirm-row confirm-row--total">
+            <span class="confirm-row__label">Balance after purchase</span>
+            <span class="confirm-row__value">$14.25</span>
+          </div>
+        </div>
+
+      </main>
+      <div class="bottom-action">
+        <button class="btn-primary" onclick="navigate('checkout-success')">Pay $0.00</button>
+      </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- SCREEN: Checkout — Success -->
+    <!-- ========================================== -->
+    <div id="screen-checkout-success" class="screen">
+      <main class="main fade-in">
+
+        <div class="success-state">
+          <div class="success-state__icon">
+            <svg width="32" height="32" fill="none" stroke="#49CD18" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
+          </div>
+          <h1 class="success-state__title">Payment complete</h1>
+          <p class="success-state__subtitle">Unlimited Nigeria is now active</p>
+
+          <div class="success-details">
+            <div class="success-detail">
+              <span class="success-detail__label">Plan price</span>
+              <span class="success-detail__value">$9.99</span>
+            </div>
+            <div class="success-detail">
+              <span class="success-detail__label">Paid from wallet</span>
+              <span class="success-detail__value">$9.99</span>
+            </div>
+            <div class="success-detail">
+              <span class="success-detail__label">Charged to card</span>
+              <span class="success-detail__value">$0.00</span>
+            </div>
+            <div class="success-detail">
+              <span class="success-detail__label">Remaining balance</span>
+              <span class="success-detail__value">$14.25</span>
+            </div>
+          </div>
+        </div>
+
+      </main>
+      <div class="bottom-action">
+        <button class="btn-primary" onclick="navigate('wallet-home')">Done</button>
+      </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- SCREEN: Checkout — Error -->
+    <!-- ========================================== -->
+    <div id="screen-checkout-error" class="screen">
+      <main class="main fade-in">
+
+        <div class="success-state">
+          <div class="success-state__icon" style="background: #fde8e8;">
+            <svg width="32" height="32" fill="none" stroke="#E31B3B" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+          </div>
+          <h1 class="success-state__title">Payment failed</h1>
+          <p class="success-state__subtitle">Something went wrong processing your payment. Your wallet balance has not been charged.</p>
+        </div>
+
+      </main>
+      <div class="bottom-action" style="display: flex; flex-direction: column; gap: var(--space-sm);">
+        <button class="btn-primary" onclick="navigate('checkout')">Try again</button>
+        <button class="btn-secondary" onclick="navigate('wallet-home')">Back to wallet</button>
+      </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- SCREEN: Payment Methods Management -->
+    <!-- ========================================== -->
+    <div id="screen-payment-methods" class="screen">
+      <header class="sub-nav">
+        <button class="sub-nav__back" onclick="navigate('wallet-home')" aria-label="Back">
+          <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+        </button>
+        <span class="sub-nav__title">Payment methods</span>
+        <div class="sub-nav__spacer"></div>
+      </header>
+      <main class="main fade-in">
+
+        <p style="font-size: var(--paragraph-sm-size); color: var(--color-text-secondary); margin-bottom: var(--space-lg);">Drag to reorder. The top method is used first for subscriptions and purchases.</p>
+
+        <div class="method-card">
+          <div class="drag-handle">
+            <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><circle cx="5" cy="3" r="1.5"/><circle cx="11" cy="3" r="1.5"/><circle cx="5" cy="8" r="1.5"/><circle cx="11" cy="8" r="1.5"/><circle cx="5" cy="13" r="1.5"/><circle cx="11" cy="13" r="1.5"/></svg>
+          </div>
+          <div class="payment-method__icon" style="color: #1a1f71;">VISA</div>
+          <div class="payment-method__info" style="flex: 1;">
+            <p class="payment-method__name">Visa ••4821</p>
+            <p class="payment-method__detail">Expires 08/27</p>
+          </div>
+          <span class="payment-method__badge">Primary</span>
+          <div class="method-card__actions">
+            <button class="method-card__action method-card__action--danger" aria-label="Remove">
+              <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="method-card">
+          <div class="drag-handle">
+            <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><circle cx="5" cy="3" r="1.5"/><circle cx="11" cy="3" r="1.5"/><circle cx="5" cy="8" r="1.5"/><circle cx="11" cy="8" r="1.5"/><circle cx="5" cy="13" r="1.5"/><circle cx="11" cy="13" r="1.5"/></svg>
+          </div>
+          <div class="payment-method__icon" style="color: #eb001b;">MC</div>
+          <div class="payment-method__info" style="flex: 1;">
+            <p class="payment-method__name">Mastercard ••7733</p>
+            <p class="payment-method__detail">Expires 11/26</p>
+          </div>
+          <div class="method-card__actions">
+            <button class="method-card__action method-card__action--danger" aria-label="Remove">
+              <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"/></svg>
+            </button>
+          </div>
+        </div>
+
+      </main>
+      <div class="bottom-action">
+        <button class="btn-primary">Add payment method</button>
+      </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- SCREEN: Transaction History -->
+    <!-- ========================================== -->
+    <div id="screen-transactions" class="screen">
+      <header class="sub-nav">
+        <button class="sub-nav__back" onclick="navigate('wallet-home')" aria-label="Back">
+          <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+        </button>
+        <span class="sub-nav__title">Transactions</span>
+        <div class="sub-nav__spacer"></div>
+      </header>
+      <main class="main fade-in">
+
+        <p style="font-size: var(--paragraph-xs-size); color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.05em; font-weight: var(--font-weight-semibold); margin-bottom: var(--space-sm);">March 2026</p>
+        <div class="transaction" onclick="navigate('transaction-detail')">
+          <div class="transaction__icon transaction__icon--topup">
+            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+          </div>
+          <div class="transaction__info">
+            <p class="transaction__name">Balance top-up</p>
+            <p class="transaction__detail">Visa ••4821 · 10 Mar</p>
+          </div>
+          <span class="transaction__amount transaction__amount--positive">+$20.00</span>
+        </div>
+        <div class="transaction">
+          <div class="transaction__icon transaction__icon--purchase">
+            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z"/></svg>
+          </div>
+          <div class="transaction__info">
+            <p class="transaction__name">Unlimited Nigeria</p>
+            <p class="transaction__detail">Subscription · 5 Mar</p>
+          </div>
+          <span class="transaction__amount transaction__amount--negative">-$9.99</span>
+        </div>
+        <div class="transaction">
+          <div class="transaction__icon transaction__icon--topup">
+            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+          </div>
+          <div class="transaction__info">
+            <p class="transaction__name">Balance top-up</p>
+            <p class="transaction__detail">Visa ••4821 · 1 Mar</p>
+          </div>
+          <span class="transaction__amount transaction__amount--positive">+$50.00</span>
+        </div>
+
+        <p style="font-size: var(--paragraph-xs-size); color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.05em; font-weight: var(--font-weight-semibold); margin-bottom: var(--space-sm); margin-top: var(--space-xl);">February 2026</p>
+        <div class="transaction">
+          <div class="transaction__icon transaction__icon--mobile">
+            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 1.5H8.25A2.25 2.25 0 006 3.75v16.5a2.25 2.25 0 002.25 2.25h7.5A2.25 2.25 0 0018 20.25V3.75a2.25 2.25 0 00-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-3 18.75h3"/></svg>
+          </div>
+          <div class="transaction__info">
+            <p class="transaction__name">Mobile top-up · Nigeria</p>
+            <p class="transaction__detail">MTN · 28 Feb</p>
+          </div>
+          <span class="transaction__amount transaction__amount--negative">-$15.00</span>
+        </div>
+        <div class="transaction">
+          <div class="transaction__icon transaction__icon--purchase">
+            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z"/></svg>
+          </div>
+          <div class="transaction__info">
+            <p class="transaction__name">Unlimited Nigeria</p>
+            <p class="transaction__detail">Subscription · 5 Feb</p>
+          </div>
+          <span class="transaction__amount transaction__amount--negative">-$9.99</span>
+        </div>
+        <div class="transaction">
+          <div class="transaction__icon transaction__icon--topup">
+            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+          </div>
+          <div class="transaction__info">
+            <p class="transaction__name">Balance top-up</p>
+            <p class="transaction__detail">Mastercard ••7733 · 1 Feb</p>
+          </div>
+          <span class="transaction__amount transaction__amount--positive">+$30.00</span>
+        </div>
+
+        <p style="font-size: var(--paragraph-xs-size); color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.05em; font-weight: var(--font-weight-semibold); margin-bottom: var(--space-sm); margin-top: var(--space-xl);">January 2026</p>
+        <div class="transaction">
+          <div class="transaction__icon transaction__icon--purchase">
+            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z"/></svg>
+          </div>
+          <div class="transaction__info">
+            <p class="transaction__name">Unlimited Nigeria</p>
+            <p class="transaction__detail">Subscription · 5 Jan</p>
+          </div>
+          <span class="transaction__amount transaction__amount--negative">-$9.99</span>
+        </div>
+        <div class="transaction">
+          <div class="transaction__icon transaction__icon--mobile">
+            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 1.5H8.25A2.25 2.25 0 006 3.75v16.5a2.25 2.25 0 002.25 2.25h7.5A2.25 2.25 0 0018 20.25V3.75a2.25 2.25 0 00-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-3 18.75h3"/></svg>
+          </div>
+          <div class="transaction__info">
+            <p class="transaction__name">Mobile top-up · Nigeria</p>
+            <p class="transaction__detail">MTN · 12 Jan</p>
+          </div>
+          <span class="transaction__amount transaction__amount--negative">-$10.00</span>
+        </div>
+        <div class="transaction">
+          <div class="transaction__icon transaction__icon--topup">
+            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+          </div>
+          <div class="transaction__info">
+            <p class="transaction__name">Balance top-up</p>
+            <p class="transaction__detail">Visa ••4821 · 2 Jan</p>
+          </div>
+          <span class="transaction__amount transaction__amount--positive">+$50.00</span>
+        </div>
+
+        <p style="font-size: var(--paragraph-xs-size); color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.05em; font-weight: var(--font-weight-semibold); margin-bottom: var(--space-sm); margin-top: var(--space-xl);">December 2025</p>
+        <div class="transaction">
+          <div class="transaction__icon transaction__icon--topup">
+            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+          </div>
+          <div class="transaction__info">
+            <p class="transaction__name">Balance top-up</p>
+            <p class="transaction__detail">Mastercard ••7733 · 20 Dec</p>
+          </div>
+          <span class="transaction__amount transaction__amount--positive">+$20.00</span>
+        </div>
+        <div class="transaction">
+          <div class="transaction__icon transaction__icon--purchase">
+            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z"/></svg>
+          </div>
+          <div class="transaction__info">
+            <p class="transaction__name">Unlimited Nigeria</p>
+            <p class="transaction__detail">Subscription · 5 Dec</p>
+          </div>
+          <span class="transaction__amount transaction__amount--negative">-$9.99</span>
+        </div>
+        <div class="transaction">
+          <div class="transaction__icon transaction__icon--mobile">
+            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 1.5H8.25A2.25 2.25 0 006 3.75v16.5a2.25 2.25 0 002.25 2.25h7.5A2.25 2.25 0 0018 20.25V3.75a2.25 2.25 0 00-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-3 18.75h3"/></svg>
+          </div>
+          <div class="transaction__info">
+            <p class="transaction__name">Mobile top-up · Ghana</p>
+            <p class="transaction__detail">Vodafone · 1 Dec</p>
+          </div>
+          <span class="transaction__amount transaction__amount--negative">-$12.00</span>
+        </div>
+
+      </main>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- SCREEN: Transaction Detail -->
+    <!-- ========================================== -->
+    <div id="screen-transaction-detail" class="screen">
+      <header class="sub-nav">
+        <button class="sub-nav__back" onclick="navigate('transactions')" aria-label="Back">
+          <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+        </button>
+        <span class="sub-nav__title">Transaction detail</span>
+        <div class="sub-nav__spacer"></div>
+      </header>
+      <main class="main fade-in">
+
+        <div class="detail-header">
+          <p class="detail-header__amount detail-header__amount--positive">+$20.00</p>
+          <p class="detail-header__label">Balance top-up</p>
+        </div>
+
+        <div class="detail-rows">
+          <div class="detail-row">
+            <span class="detail-row__label">Date</span>
+            <span class="detail-row__value">10 March 2026, 09:42</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-row__label">Type</span>
+            <span class="detail-row__value">Top-up</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-row__label">Payment method</span>
+            <span class="detail-row__value">Visa ••4821</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-row__label">Balance after</span>
+            <span class="detail-row__value">$24.24</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-row__label">Transaction ID</span>
+            <span class="detail-row__value" style="font-size: var(--paragraph-xs-size);">TXN-2026-0310-4821</span>
+          </div>
+        </div>
+
+      </main>
+      <div class="bottom-action">
+        <button class="btn-secondary" onclick="navigate('refund-request')">Request refund</button>
+      </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- SCREEN: Refund Request -->
+    <!-- ========================================== -->
+    <div id="screen-refund-request" class="screen">
+      <header class="sub-nav">
+        <button class="sub-nav__back" onclick="navigate('transaction-detail')" aria-label="Back">
+          <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+        </button>
+        <span class="sub-nav__title">Request refund</span>
+        <div class="sub-nav__spacer"></div>
+      </header>
+      <main class="main fade-in">
+
+        <p style="font-size: var(--paragraph-sm-size); color: var(--color-text-secondary); margin-bottom: var(--space-lg);">Tell us why you'd like a refund for this $20.00 top-up.</p>
+
+        <div class="refund-reasons">
+          <div class="refund-reason refund-reason--selected" onclick="selectRefundReason(this)">
+            <div class="method-option__radio"><div class="method-option__radio-dot" style="display:block;"></div></div>
+            Charged incorrectly
+          </div>
+          <div class="refund-reason" onclick="selectRefundReason(this)">
+            <div class="method-option__radio"><div class="method-option__radio-dot"></div></div>
+            Didn't mean to top up
+          </div>
+          <div class="refund-reason" onclick="selectRefundReason(this)">
+            <div class="method-option__radio"><div class="method-option__radio-dot"></div></div>
+            Service issue
+          </div>
+          <div class="refund-reason" onclick="selectRefundReason(this)">
+            <div class="method-option__radio"><div class="method-option__radio-dot"></div></div>
+            Other
+          </div>
+        </div>
+
+        <label style="font-size: var(--paragraph-sm-size); color: var(--color-text-secondary); margin-bottom: var(--space-xs); display: block;">Additional details (optional)</label>
+        <textarea class="refund-textarea" placeholder="Tell us more about what happened..."></textarea>
+
+      </main>
+      <div class="bottom-action">
+        <button class="btn-primary" onclick="navigate('wallet-home')">Submit request</button>
+      </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- SCREEN: Discounts -->
+    <!-- ========================================== -->
+    <div id="screen-discounts" class="screen">
+      <header class="sub-nav">
+        <button class="sub-nav__back" onclick="navigate('wallet-home')" aria-label="Back">
+          <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+        </button>
+        <span class="sub-nav__title">Discounts</span>
+        <div class="sub-nav__spacer"></div>
+      </header>
+      <main class="main fade-in">
+
+        <div class="discount-item">
+          <div class="discount-item__icon discount-item__icon--active">
+            <svg width="20" height="20" fill="none" stroke="#49CD18" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.568 3H5.25A2.25 2.25 0 003 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 005.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 009.568 3z"/><circle cx="6.75" cy="6.75" r="0.75" fill="#49CD18"/></svg>
+          </div>
+          <div class="discount-item__content">
+            <p class="discount-item__title">15% Welcome discount</p>
+            <p class="discount-item__detail">All services · Expires 24 Mar 2026</p>
+          </div>
+          <span class="status-badge status-badge--active">Active</span>
+        </div>
+
+        <div class="discount-item">
+          <div class="discount-item__icon discount-item__icon--used">
+            <svg width="20" height="20" fill="none" stroke="var(--color-grey-04)" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.568 3H5.25A2.25 2.25 0 003 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 005.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 009.568 3z"/><circle cx="6.75" cy="6.75" r="0.75" fill="var(--color-grey-04)"/></svg>
+          </div>
+          <div class="discount-item__content">
+            <p class="discount-item__title">$2 off mobile top-up</p>
+            <p class="discount-item__detail">Mobile top-up · Used 28 Feb 2026</p>
+          </div>
+          <span class="status-badge status-badge--used">Used</span>
+        </div>
+
+        <div class="discount-item">
+          <div class="discount-item__icon discount-item__icon--expired">
+            <svg width="20" height="20" fill="none" stroke="var(--color-grey-04)" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.568 3H5.25A2.25 2.25 0 003 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 005.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 009.568 3z"/><circle cx="6.75" cy="6.75" r="0.75" fill="var(--color-grey-04)"/></svg>
+          </div>
+          <div class="discount-item__content">
+            <p class="discount-item__title">10% calling discount</p>
+            <p class="discount-item__detail">International calls · Expired 15 Jan 2026</p>
+          </div>
+          <span class="status-badge status-badge--expired">Expired</span>
+        </div>
+
+      </main>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- SCREEN: Subscriptions -->
+    <!-- ========================================== -->
+    <div id="screen-subscriptions" class="screen">
+      <header class="sub-nav">
+        <button class="sub-nav__back" onclick="navigate('wallet-home')" aria-label="Back">
+          <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+        </button>
+        <span class="sub-nav__title">Your subscriptions</span>
+        <div class="sub-nav__spacer"></div>
+      </header>
+      <main class="main fade-in">
+
+        <div class="sub-card">
+          <div class="sub-card__header">
+            <h3 class="sub-card__name">Unlimited Nigeria</h3>
+            <span class="status-badge status-badge--active">Active</span>
+          </div>
+          <p class="sub-card__details">$9.99/month · Next billing: 5 Apr 2026<br>Pays with Visa ••4821</p>
+          <div class="sub-card__actions">
+            <button class="sub-card__btn sub-card__btn--danger">Pause</button>
+          </div>
+        </div>
+
+        <div class="sub-card">
+          <div class="sub-card__header">
+            <h3 class="sub-card__name">Unlimited US &amp; Canada</h3>
+            <span class="status-badge status-badge--paused">Paused</span>
+          </div>
+          <p class="sub-card__details">$4.99/month · Paused since 10 Feb 2026</p>
+          <div class="sub-card__actions">
+            <button class="sub-card__btn sub-card__btn--resume">Resume</button>
+          </div>
+        </div>
+
+      </main>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- Tab bar (shared across all screens) -->
+    <!-- ========================================== -->
+    <nav class="tab-bar" id="tab-bar">
+      <a href="#" class="tab-bar__item" data-tab="home" onclick="switchTab('home', event)">
+        <svg class="icon-active" width="56" height="56" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4 20C4 17.8122 4.78096 15.7601 6.14632 13.9923C8.91455 10.4087 14.0811 8 20 8C28.8355 8 36 13.3732 36 20C36 26.6268 28.8373 32 20 32C11.1627 32 4 26.6268 4 20Z" fill="#111111"/><path d="M19.927 16.0725C20.4814 15.5667 20.9537 14.9937 21.5681 14.6007C23.4554 13.3928 26.3654 14.0895 27.4481 15.9488C28.3648 17.5224 28.1446 19.4835 26.7497 20.8479C25.8951 21.6848 24.8804 22.3888 23.9217 23.1347C22.769 24.0315 21.5942 24.9048 20.4374 25.798C20.1712 26.0036 19.947 26.0963 19.6348 25.8617C17.9537 24.5919 16.2605 23.3366 14.5814 22.0631C13.5487 21.2809 12.6381 20.4149 12.2218 19.1997C11.4353 16.9039 12.8042 14.5789 15.3219 14.1077C17.2132 13.753 18.7082 14.3242 19.7649 15.8487C19.833 15.947 19.905 16.0434 19.927 16.0725Z" fill="white"/></svg>
+        <svg class="icon-inactive" width="56" height="56" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M22.0537 15.3584C22.7558 14.9092 23.6968 14.7897 24.6055 15.001C25.5167 15.213 26.2787 15.7299 26.6699 16.4014H26.6709C27.381 17.6205 27.2187 19.1295 26.1201 20.2041V20.2051C25.3143 20.9941 24.3814 21.6373 23.3691 22.4248C22.2349 23.3072 21.146 24.1166 19.9932 25.0049C18.359 23.7721 16.7501 22.5781 15.125 21.3457L14.7637 21.0635C13.9514 20.4044 13.3586 19.7412 13.0732 18.9082C12.4731 17.1565 13.483 15.3673 15.4873 14.9922H15.4883C16.3045 14.8392 16.9758 14.8964 17.5303 15.1123C18.0123 15.3001 18.4567 15.6278 18.8564 16.1338L19.0254 16.3613C19.1033 16.4737 19.1831 16.581 19.209 16.6152L19.8047 17.4023L20.5332 16.7373C20.818 16.4775 21.1271 16.1577 21.3506 15.9414C21.6003 15.6998 21.8215 15.5074 22.0527 15.3594L22.0537 15.3584Z" stroke="#B9B9BE" stroke-width="1.8"/><path d="M20 9C24.2222 9 28.0064 10.2856 30.7129 12.3154C33.4191 14.3451 35 17.072 35 20C35 22.9281 33.4198 25.656 30.7139 27.6855C28.0077 29.7152 24.223 31 20 31C15.777 31 11.9923 29.7152 9.28613 27.6855C6.58021 25.656 5 22.9281 5 20C5 18.0602 5.69009 16.2186 6.9375 14.6035C9.48103 11.3108 14.328 9 20 9Z" stroke="#B9B9BE" stroke-width="2" stroke-miterlimit="10"/></svg>
+        Home
+      </a>
+      <a href="#" class="tab-bar__item" data-tab="services" onclick="switchTab('services', event)">
+        <svg class="icon-active" width="56" height="56" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4 20C4 17.8122 4.78096 15.7601 6.14632 13.9923C8.91455 10.4087 14.0811 8 20 8C28.8355 8 36 13.3732 36 20C36 26.6268 28.8373 32 20 32C11.1627 32 4 26.6268 4 20Z" fill="#111111"/><path d="M25.9957 15.0048V25H18.2026C15.8659 25 14.291 23.6418 14.291 21.7575C14.291 20.2989 15.2625 18.8594 17.3081 18.5007L14 15.0574L14.0385 15H16.9016L19.893 18.2712H23.6377V15H26L25.9957 15.0048ZM18.4722 22.9292H23.6334V20.3467H18.4722C17.3338 20.3467 16.5934 20.7915 16.5934 21.6475C16.5934 22.5036 17.3338 22.934 18.4722 22.934V22.9292Z" fill="white"/></svg>
+        <svg class="icon-inactive" width="56" height="56" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M25.9957 15.0048V25H18.2026C15.8659 25 14.291 23.6418 14.291 21.7575C14.291 20.2989 15.2625 18.8594 17.3081 18.5007L14 15.0574L14.0385 15H16.9016L19.893 18.2712H23.6377V15H26L25.9957 15.0048ZM18.4722 22.9292H23.6334V20.3467H18.4722C17.3338 20.3467 16.5934 20.7915 16.5934 21.6475C16.5934 22.5036 17.3338 22.934 18.4722 22.934V22.9292Z" fill="#B9B9BE"/><path d="M20 9C24.2222 9 28.0064 10.2856 30.7129 12.3154C33.4191 14.3451 35 17.072 35 20C35 22.9281 33.4198 25.656 30.7139 27.6855C28.0077 29.7152 24.223 31 20 31C15.777 31 11.9923 29.7152 9.28613 27.6855C6.58021 25.656 5 22.9281 5 20C5 18.0602 5.69009 16.2186 6.9375 14.6035C9.48103 11.3108 14.328 9 20 9Z" stroke="#B9B9BE" stroke-width="2" stroke-miterlimit="10"/></svg>
+        Services
+      </a>
+      <a href="#" class="tab-bar__item tab-bar__item--active" data-tab="account" onclick="switchTab('account', event)">
+        <svg class="icon-active" width="56" height="56" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M5.56875 14.1592C4.14651 15.8778 3.33301 17.873 3.33301 20C3.33301 24.3779 6.77816 28.1931 11.8747 30.1888C12.8768 27.3408 15.3625 23.3333 19.9998 23.3333C24.6371 23.3333 27.1228 27.3407 28.1249 30.1887C33.2213 28.193 36.6663 24.3778 36.6663 20C36.6663 13.5573 29.2033 8.33331 19.9997 8.33331C13.8341 8.33331 8.45233 10.6751 5.56875 14.1592ZM19.9998 21.0028C21.9175 21.0028 23.4721 19.4352 23.4721 17.5014C23.4721 15.5676 21.9175 14 19.9998 14C18.0822 14 16.5276 15.5676 16.5276 17.5014C16.5276 19.4352 18.0822 21.0028 19.9998 21.0028Z" fill="#111111"/></svg>
+        <svg class="icon-inactive" width="56" height="56" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12.5 30C13.3346 27.1589 15.0001 23.3333 20.0001 23.3333C25.0001 23.3333 27.1656 27.1589 28.0002 30M23.4723 17.5014C23.4723 19.4352 21.9177 21.0028 20.0001 21.0028C18.0824 21.0028 16.5278 19.4352 16.5278 17.5014C16.5278 15.5676 18.0824 14 20.0001 14C21.9177 14 23.4723 15.5676 23.4723 17.5014Z" stroke="#B9B9BE" stroke-width="1.8"/><path d="M20.0005 9.13312C24.4579 9.13318 28.4596 10.3995 31.3257 12.4056C34.1944 14.4137 35.8667 17.1117 35.8667 20.0003C35.8666 22.8889 34.195 25.5861 31.3267 27.5941C28.4608 29.6002 24.459 30.8665 20.0005 30.8665C15.5418 30.8665 11.5393 29.6003 8.67334 27.5941C5.80507 25.5861 4.13343 22.8888 4.1333 20.0003C4.1333 18.0873 4.86249 16.2665 6.18506 14.6683C8.88205 11.41 14.0132 9.13312 20.0005 9.13312Z" stroke="#B9B9BE" stroke-width="1.6" stroke-miterlimit="10"/></svg>
+        Account
+      </a>
+    </nav>
+
+  </div>
+
+  <!-- Demo state switcher -->
+  <div class="demo-switcher">
+    <p class="demo-switcher__label">Tabs</p>
+    <button class="demo-switcher__btn" onclick="navigate('home')">Home</button>
+    <button class="demo-switcher__btn" onclick="navigate('services')">Services</button>
+    <button class="demo-switcher__btn" onclick="navigate('account')">Account</button>
+    <p class="demo-switcher__label" style="margin-top: var(--space-xs);">Wallet</p>
+    <button class="demo-switcher__btn" onclick="navigate('wallet-home')">Wallet detail</button>
+    <p class="demo-switcher__label" style="margin-top: var(--space-xs);">Add funds flow</p>
+    <button class="demo-switcher__btn" onclick="navigate('add-balance')">1. Select amount</button>
+    <button class="demo-switcher__btn" onclick="navigate('add-balance-confirm')">2. Confirm</button>
+    <button class="demo-switcher__btn" onclick="navigate('add-balance-success')">3. Success</button>
+    <button class="demo-switcher__btn" onclick="navigate('add-balance-error')">3. Error</button>
+    <p class="demo-switcher__label" style="margin-top: var(--space-xs);">Checkout flow</p>
+    <button class="demo-switcher__btn" onclick="navigate('checkout')">1. Checkout</button>
+    <button class="demo-switcher__btn" onclick="navigate('checkout-success')">2. Success</button>
+    <button class="demo-switcher__btn" onclick="navigate('checkout-error')">2. Error</button>
+    <p class="demo-switcher__label" style="margin-top: var(--space-xs);">Supporting screens</p>
+    <button class="demo-switcher__btn" onclick="navigate('payment-methods')">Payment methods</button>
+    <button class="demo-switcher__btn" onclick="navigate('transactions')">Transactions</button>
+    <button class="demo-switcher__btn" onclick="navigate('transaction-detail')">Transaction detail</button>
+    <button class="demo-switcher__btn" onclick="navigate('refund-request')">Refund request</button>
+    <button class="demo-switcher__btn" onclick="navigate('discounts')">Discounts</button>
+    <button class="demo-switcher__btn" onclick="navigate('subscriptions')">Subscriptions</button>
+  </div>
+
+  <script>
+    const tabScreens = ['home', 'services', 'account'];
+    const subScreens = ['wallet-home', 'add-balance', 'add-balance-confirm', 'add-balance-success', 'add-balance-error', 'checkout', 'checkout-success', 'checkout-error', 'payment-methods', 'transactions', 'transaction-detail', 'refund-request', 'discounts', 'subscriptions'];
+
+    function navigate(screenId) {
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+      const target = document.getElementById('screen-' + screenId);
+      if (target) target.classList.add('active');
+
+      // Show/hide tab bar on sub-screens
+      const tabBar = document.getElementById('tab-bar');
+      tabBar.style.display = subScreens.includes(screenId) ? 'none' : '';
+
+      // Update active tab if navigating to a tab screen
+      if (tabScreens.includes(screenId)) {
+        updateActiveTab(screenId);
+      }
+    }
+
+    function switchTab(tabName, event) {
+      if (event) event.preventDefault();
+      navigate(tabName);
+    }
+
+    function updateActiveTab(activeTab) {
+      document.querySelectorAll('.tab-bar__item').forEach(item => {
+        item.classList.toggle('tab-bar__item--active', item.dataset.tab === activeTab);
+      });
+    }
+
+    function selectAmount(el, amount) {
+      document.querySelectorAll('.amount-pill').forEach(p => p.classList.remove('amount-pill--selected'));
+      el.classList.add('amount-pill--selected');
+      document.getElementById('custom-amount-input').value = '';
+    }
+
+    function clearPills() {
+      document.querySelectorAll('.amount-pill').forEach(p => p.classList.remove('amount-pill--selected'));
+    }
+
+    function selectMethod(el) {
+      document.querySelectorAll('.method-option').forEach(m => m.classList.remove('method-option--selected'));
+      el.classList.add('method-option--selected');
+    }
+
+    function selectRefundReason(el) {
+      document.querySelectorAll('.refund-reason').forEach(r => {
+        r.classList.remove('refund-reason--selected');
+        r.querySelector('.method-option__radio-dot').style.display = 'none';
+      });
+      el.classList.add('refund-reason--selected');
+      el.querySelector('.method-option__radio-dot').style.display = 'block';
+    }
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,148 @@
+/* ==========================================================================
+   Rebtel 3.0 Design Tokens
+   Extracted from Figma design system.
+   ========================================================================== */
+
+:root {
+  /* --- Brand Colors --- */
+  --color-rebtel-red: #E31B3B;
+  --color-red-60: #5B0B18;
+  --color-red-50: #881023;
+  --color-red-40: #B6162F;
+  --color-red-30: #E94962;
+  --color-red-20: #EE7689;
+  --color-red-10: #F4A4B1;
+
+  --color-black: #111111;
+  --color-white: #FFFFFF;
+
+  /* --- Greys --- */
+  --color-grey-01: #2D2D32;
+  --color-grey-02: #505055;
+  --color-grey-03: #737378;
+  --color-grey-04: #96969B;
+  --color-grey-05: #B9B9BE;
+  --color-grey-06: #DCDCE1;
+  --color-grey-07: #F3F3F3;
+  --color-grey-08: #FAFAFC;
+
+  /* --- Semantic Colors --- */
+  --color-warning: #F06E1D;
+  --color-success: #49CD18;
+  --color-purple: #4200FF;
+  --color-error: var(--color-rebtel-red);
+
+  /* --- Semantic Aliases --- */
+  --color-primary: var(--color-rebtel-red);
+  --color-primary-hover: var(--color-red-40);
+  --color-primary-light: var(--color-red-10);
+  --color-primary-dark: var(--color-red-50);
+
+  --color-bg: var(--color-white);
+  --color-bg-subtle: var(--color-grey-08);
+  --color-bg-muted: var(--color-grey-07);
+  --color-surface: var(--color-white);
+
+  --color-border: var(--color-grey-06);
+  --color-border-strong: var(--color-grey-05);
+
+  --color-text: var(--color-black);
+  --color-text-secondary: var(--color-grey-02);
+  --color-text-muted: var(--color-grey-04);
+  --color-text-inverse: var(--color-white);
+  --color-text-link: var(--color-rebtel-red);
+
+  /* --- Typography --- */
+  /* Display font: Pano (custom). Fallback to Inter/system-ui. */
+  --font-display: 'Pano', 'Inter', system-ui, sans-serif;
+  /* Body/UI font: KH Teka (custom). Fallback to Inter/system-ui. */
+  --font-body: 'KH Teka', 'Inter', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+
+  /* Display sizes (Pano) */
+  --display-lg-size: 2rem;         /* 32px */
+  --display-lg-line: 2.5rem;       /* 40px */
+  --display-md-size: 1.5rem;       /* 24px */
+  --display-md-line: 2rem;         /* 32px */
+  --display-sm-size: 1.25rem;      /* 20px */
+  --display-sm-line: 2rem;         /* 32px */
+  --display-xs-size: 1rem;         /* 16px */
+  --display-xs-line: 1.5rem;       /* 24px */
+
+  /* Headline sizes (KH Teka) */
+  --headline-lg-size: 2rem;        /* 32px */
+  --headline-lg-line: 2.5rem;      /* 40px */
+  --headline-md-size: 1.5rem;      /* 24px */
+  --headline-md-line: 2.25rem;     /* 36px */
+  --headline-sm-size: 1.25rem;     /* 20px */
+  --headline-sm-line: 2rem;        /* 32px */
+  --headline-xs-size: 1rem;        /* 16px */
+  --headline-xs-line: 1.5rem;      /* 24px */
+
+  /* Paragraph sizes (KH Teka) */
+  --paragraph-xl-size: 1.25rem;    /* 20px */
+  --paragraph-xl-line: 2rem;       /* 32px */
+  --paragraph-lg-size: 1.125rem;   /* 18px */
+  --paragraph-lg-line: 1.75rem;    /* 28px */
+  --paragraph-md-size: 1rem;       /* 16px */
+  --paragraph-md-line: 1.5rem;     /* 24px */
+  --paragraph-sm-size: 0.875rem;   /* 14px */
+  --paragraph-sm-line: 1.25rem;    /* 20px */
+  --paragraph-xs-size: 0.75rem;    /* 12px */
+  --paragraph-xs-line: 1.125rem;   /* 18px */
+
+  /* Label sizes (KH Teka) */
+  --label-xl-size: 1.25rem;        /* 20px */
+  --label-xl-line: 1.25rem;        /* 20px */
+  --label-lg-size: 1.125rem;       /* 18px */
+  --label-lg-line: 1.125rem;       /* 18px */
+  --label-md-size: 1rem;           /* 16px */
+  --label-md-line: 1rem;           /* 16px */
+  --label-sm-size: 0.875rem;       /* 14px */
+  --label-sm-line: 0.875rem;       /* 14px */
+  --label-xs-size: 0.6875rem;      /* 11px */
+  --label-xs-line: 0.6875rem;      /* 11px */
+
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  /* --- Spacing --- */
+  --space-xxxs: 0.125rem;   /* 2px */
+  --space-xxs: 0.25rem;     /* 4px */
+  --space-xs: 0.5rem;       /* 8px */
+  --space-sm: 0.75rem;      /* 12px */
+  --space-md: 1rem;         /* 16px */
+  --space-lg: 1.25rem;      /* 20px */
+  --space-xl: 1.5rem;       /* 24px */
+  --space-xxl: 2rem;        /* 32px */
+  --space-xxxl: 3.25rem;    /* 52px */
+  --space-xxxxl: 4.5rem;    /* 72px */
+
+  /* --- Border Radius --- */
+  --radius-sm: 0.25rem;     /* 4px */
+  --radius-md: 0.5rem;      /* 8px */
+  --radius-lg: 0.75rem;     /* 12px */
+  --radius-xl: 1rem;        /* 16px */
+  --radius-2xl: 1.5rem;     /* 24px */
+  --radius-full: 9999px;
+
+  /* --- Shadows / Elevation --- */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.06);
+  --shadow-md: 0 4px 8px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.08);
+  --shadow-lg: 0 12px 24px -4px rgb(0 0 0 / 0.12), 0 4px 8px -4px rgb(0 0 0 / 0.08);
+
+  /* --- Focus ring --- */
+  --focus-ring: 0 0 0 2px var(--color-white), 0 0 0 4px var(--color-rebtel-red);
+
+  /* --- Transitions --- */
+  --transition-fast: 150ms ease;
+  --transition-base: 200ms ease;
+  --transition-slow: 300ms ease;
+
+  /* --- Layout --- */
+  --nav-bar-height: 56px;
+  --tab-bar-height: 56px;
+  --content-max-width: 428px;  /* Mobile-first app width */
+}
